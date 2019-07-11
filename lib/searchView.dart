@@ -6,6 +6,7 @@ import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'dart:async';
 import 'package:torry/constants/constants.dart' as constants;
 import 'package:torry/torrDatabase/torrDatabase.dart';
+import 'package:torry/urlMods/urlMods.dart';
 
 class searchView extends StatefulWidget {
   @override
@@ -14,13 +15,15 @@ class searchView extends StatefulWidget {
 
 class _searchViewState extends State<searchView>
     with AutomaticKeepAliveClientMixin<searchView> {
+  String sortBy;
+  String searchType;
   final _movieSearchController = TextEditingController();
   final List<String> _url = constants.url;
   List<String> loadedFiles = [];
   List<String> bookmarkedFiles = [];
   List<Map<String, dynamic>> _primaryLinkMap = [];
   List<String> suggestions = ['tamal', 'hansda'];
-  final _searchProtocol = 's/?q=';
+  final _searchProtocol = '/s/?q=';
   bool isPerformingRequest;
   bool needSuggestions = true;
 
@@ -34,7 +37,7 @@ class _searchViewState extends State<searchView>
     for (var i = 0; i < len; i++) {
       bookmarkedFiles.add(marks[i]['title']);
     }
-    print(bookmarkedFiles);
+    //print(bookmarkedFiles);
   }
 
   Future<String> getMagnetLink(dom.Element link, int index) async {
@@ -62,12 +65,14 @@ class _searchViewState extends State<searchView>
     setState(() {});
     var client = Client();
 
-    searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
-    do {
-      String url = _url.elementAt(index);
-      print(url + _searchProtocol + searchTerm);
+    //searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
+    String codedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
 
-      response = await client.get(url + _searchProtocol + searchTerm);
+    do {
+      String url =
+          _url.elementAt(index) + codedUrl;
+      print(url);
+      response = await client.get(url);
 
       index++;
     } while (response.statusCode != 200);
@@ -78,10 +83,9 @@ class _searchViewState extends State<searchView>
     List<dom.Element> searchResults = document.querySelectorAll('tbody > tr');
 
     for (var searchResult in searchResults) {
-      String tempTerm =
-          _movieSearchController.text.replaceAll(RegExp(r' '), '+');
-      print('searching for $searchTerm and $tempTerm');
-      if (tempTerm != searchTerm) {
+      String tempCodedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
+      print('searching for $codedUrl and $tempCodedUrl');
+      if (codedUrl != tempCodedUrl) {
         isPerformingRequest = false;
         return 0;
       }
@@ -90,6 +94,9 @@ class _searchViewState extends State<searchView>
           searchResult.querySelector('font').text.split(', ');
       List<dom.Element> seedLeech = searchResult.querySelectorAll('td');
       String seeds = seedLeech[2].text;
+      if (int.parse(seeds) == 0) {
+        continue;
+      }
       String leechs = seedLeech[3].text;
       try {
         String magnetLink = await getMagnetLink(link, index);
@@ -101,7 +108,7 @@ class _searchViewState extends State<searchView>
           'seeds': seeds,
           'leechs': leechs,
         });
-        print('New result added');
+        //print('New result added');
         setState(() {});
       } catch (e) {}
     }
@@ -127,14 +134,14 @@ class _searchViewState extends State<searchView>
     for (var searchResult in searchResults) {
       String tempTerm =
           _movieSearchController.text.replaceAll(RegExp(r' '), '+');
-      print('searching for $searchTerm and $tempTerm');
+      //print('searching for $searchTerm and $tempTerm');
       if (tempTerm != searchTerm) {
         return 0;
       }
       String sug = searchResult.attributes['data'];
       suggestions.add(sug);
-      print('get suggestions');
-      print(suggestions);
+      //print('get suggestions');
+      //print(suggestions);
       setState(() {});
       //print(primaryLinkMap.length);
     }
@@ -156,13 +163,13 @@ class _searchViewState extends State<searchView>
     // Add listeners to this class
     isPerformingRequest = false;
     needSuggestions = false;
-    print('initstate');
+    //print('initstate');
     _getSuggestions();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('searchbar');
+    //print('searchbar');
     return Column(
       children: <Widget>[
         Container(
@@ -198,142 +205,215 @@ class _searchViewState extends State<searchView>
                       ),
                     ],
                   )),
+              Container(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: DropdownButton(
+                        hint: Text('Sort by'),
+                        value: sortBy,
+                        items: constants.sortByList.map((String value) {
+                          return new DropdownMenuItem<String>(
+                            value: value,
+                            child: new Text(
+                              value,
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (text) {
+                          setState(() {
+                            sortBy = text;
+                          });
+                        },
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 0),
+                      child: DropdownButton(
+                        hint: Text('Type'),
+                        value: searchType,
+                        items: constants.searchTypeList.map((String value) {
+                          return new DropdownMenuItem<String>(
+                            value: value,
+                            child: new Text(
+                              value,
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (text) {
+                          setState(() {
+                            searchType = text;
+                          });
+                        },
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: RaisedButton(
+                          elevation: 3,
+                          textColor: Colors.grey,
+                          color: Colors.white,
+                          child: Text(
+                            "Apply",
+                            style: TextStyle(fontSize: 17),
+                          ),
+                          onPressed: () {
+                            _getList();
+                          },
+                          shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(30.0))),
+                    )
+                  ],
+                ),
+              )
             ],
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
           ),
         ),
         Expanded(
             child: ListView.builder(
-          itemCount: needSuggestions ? suggestions.length : _primaryLinkMap.length + 1,
+          itemCount:
+              needSuggestions ? suggestions.length : _primaryLinkMap.length + 1,
           padding: const EdgeInsets.all(10.0),
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
           itemBuilder: (context, index) {
             if (needSuggestions) {
-              print('suggestions');
-              print(suggestions);
+              //print('suggestions');
+              //print(suggestions);
               return GestureDetector(
-                onTap: (){
-                  _movieSearchController.text = suggestions[index];
-                  _movieSearchController.selection = TextSelection.collapsed(offset: _movieSearchController.text.length);
-                  _getList();
-                },
-              child: Card(
-                elevation: 3 ,
-                  margin: EdgeInsets.all(3),
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-                    child: Text(
-                      suggestions[index],
-                      style: TextStyle(fontSize: 20),
-                    ),
-                  )));
+                  onTap: () {
+                    _movieSearchController.text = suggestions[index];
+                    _movieSearchController.selection = TextSelection.collapsed(
+                        offset: _movieSearchController.text.length);
+                    _getList();
+                  },
+                  child: Card(
+                      elevation: 3,
+                      margin: EdgeInsets.all(3),
+                      child: Container(
+                        padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+                        child: Text(
+                          suggestions[index],
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      )));
             } else {
               if (index == _primaryLinkMap.length) {
                 return _buildProgressIndicator();
               } else {
                 return Card(
-                  elevation: 5,
+                    elevation: 5,
                     child: Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(10, 15, 0, 7),
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                              child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(10, 15, 0, 7),
+                          child: Row(
                             children: <Widget>[
-                              Container(
-                                child: Text(
-                                  _primaryLinkMap[index]['title'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                padding: EdgeInsets.only(bottom: 5),
-                              ),
-                              Row(
+                              Expanded(
+                                  child: Column(
                                 children: <Widget>[
-                                  Column(
-                                    children: <Widget>[
-                                      Text(
-                                        _primaryLinkMap[index]['date'],
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey,
-                                            fontStyle: FontStyle.italic),
+                                  Container(
+                                    child: Text(
+                                      _primaryLinkMap[index]['title'],
+                                      style: TextStyle(
+                                        fontSize: 16,
                                       ),
-                                      Text(
-                                        _primaryLinkMap[index]['size'],
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey,
-                                            fontStyle: FontStyle.italic),
-                                      ),
-                                    ],
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    ),
+                                    padding: EdgeInsets.only(bottom: 5),
                                   ),
-                                  Expanded(
-                                      child: Column(
+                                  Row(
                                     children: <Widget>[
-                                      Text(
-                                        'seeders ' +
-                                            _primaryLinkMap[index]['seeds'],
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey,
-                                            fontStyle: FontStyle.italic),
+                                      Column(
+                                        children: <Widget>[
+                                          Text(
+                                            _primaryLinkMap[index]['date'],
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                          Text(
+                                            _primaryLinkMap[index]['size'],
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                        ],
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                       ),
-                                      Text(
-                                        'leechers ' +
-                                            _primaryLinkMap[index]['leechs'],
-                                        style: TextStyle(
-                                            fontSize: 13,
-                                            color: Colors.grey,
-                                            fontStyle: FontStyle.italic),
-                                      )
+                                      Expanded(
+                                          child: Column(
+                                        children: <Widget>[
+                                          Text(
+                                            'seeders ' +
+                                                _primaryLinkMap[index]['seeds'],
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey,
+                                                fontStyle: FontStyle.italic),
+                                          ),
+                                          Text(
+                                            'leechers ' +
+                                                _primaryLinkMap[index]
+                                                    ['leechs'],
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.grey,
+                                                fontStyle: FontStyle.italic),
+                                          )
+                                        ],
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                      ))
                                     ],
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                  ))
+                                  )
                                 ],
-                              )
-                            ],
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                          )),
-                          IconButton(
-                              icon: Icon(Icons.file_download),
-                              onPressed: () => launchMagnetLink(
-                                  _primaryLinkMap[index]['magnetLink'])),
-                          IconButton(
-                              icon: Icon(bookmarkedFiles
-                                      .contains(_primaryLinkMap[index]['title'])
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border),
-                              onPressed: () async {
-                                String title = _primaryLinkMap[index]['title'];
-                                bool bookmarked =
-                                    bookmarkedFiles.contains(title);
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                              )),
+                              IconButton(
+                                  icon: Icon(Icons.file_download),
+                                  onPressed: () => launchMagnetLink(
+                                      _primaryLinkMap[index]['magnetLink'])),
+                              IconButton(
+                                  icon: Icon(bookmarkedFiles.contains(
+                                          _primaryLinkMap[index]['title'])
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border),
+                                  onPressed: () async {
+                                    String title =
+                                        _primaryLinkMap[index]['title'];
+                                    bool bookmarked =
+                                        bookmarkedFiles.contains(title);
 
-                                if (!bookmarked) {
-                                  TorrentDatabase.instance.insert(
-                                      Torrent.fromMap(_primaryLinkMap[index]));
-                                  bookmarkedFiles.add(title);
-                                  print('bookmarked');
-                                } else {
-                                  TorrentDatabase.instance.deleteTorrent(title);
-                                  bookmarkedFiles.remove(title);
-                                  print('bookmark removed');
-                                }
-                                //_updateBookmarks();
-                                setState(() {});
-                              })
-                        ],
-                      ),
-                    )
-                  ],
-                ));
+                                    if (!bookmarked) {
+                                      TorrentDatabase.instance.insert(
+                                          Torrent.fromMap(
+                                              _primaryLinkMap[index]));
+                                      bookmarkedFiles.add(title);
+                                      //print('bookmarked');
+                                    } else {
+                                      TorrentDatabase.instance
+                                          .deleteTorrent(title);
+                                      bookmarkedFiles.remove(title);
+                                      //print('bookmark removed');
+                                    }
+                                    //_updateBookmarks();
+                                    setState(() {});
+                                  })
+                            ],
+                          ),
+                        )
+                      ],
+                    ));
               }
             }
           },
@@ -355,33 +435,5 @@ class _searchViewState extends State<searchView>
         ),
       ),
     );
-  }
-}
-
-class ExpandableContainer extends StatelessWidget {
-  final bool expanded;
-  final double collapsedHeight;
-  final double expandedHeight;
-  final Widget child;
-
-  ExpandableContainer({
-    @required this.child,
-    this.collapsedHeight = 0.0,
-    this.expandedHeight = 250.0,
-    this.expanded = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    print('expandable is called');
-    return new AnimatedContainer(
-        duration: new Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-        width: screenWidth,
-        height: expanded ? expandedHeight : collapsedHeight,
-        child: new Container(
-          child: child,
-        ));
   }
 }
