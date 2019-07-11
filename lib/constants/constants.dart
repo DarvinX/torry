@@ -1,9 +1,9 @@
 final List<String> url = [
-  'https://bea247.in/',
-  'https://blueunblocked.club/',
-  'https://ikwilthepiratebaytpb.rocks/',
-  'https://beatpb.club/',
-  'https://baybea.net/'
+  'https://bea247.in',
+  'https://blueunblocked.club',
+  'https://ikwilthepiratebaytpb.rocks',
+  'https://beatpb.club',
+  'https://baybea.net'
 ];
 
 final List<String> categories = [
@@ -24,8 +24,27 @@ final Map<String, String> categoryMap = {
   'Ebooks': 'top/601'
 };
 
-String getAPIUrl(String text){
+String getAPIUrl(String text) {
   text = text.replaceAll(RegExp(r' '), '+');
   return "http://suggestqueries.google.com/complete/search?output=toolbar&q=$text&hl=en";
 }
 
+final List<String> sortByList = [
+  'Default',
+  'Recent',
+  'Old',
+  'Size: ▲',
+  'Size: ▼',
+  'Seeds: ▼',
+  'Leechs: ▲',
+  'Leechs: ▼'
+];
+
+final List<String> searchTypeList = [
+  'Default',
+  'Video',
+  'Audio',
+  'Software',
+  'Game',
+  'Other'
+];

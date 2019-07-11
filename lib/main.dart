@@ -68,7 +68,7 @@ class __HomePageState extends State<_HomePage>
                 controller: _tabController,
                 tabs: [
                   Tab(
-                    icon: Icon(Icons.search),
+                    icon: Icon(Icons.search,),
                   ),
                   Tab(
                     icon: Icon(Icons.whatshot),
