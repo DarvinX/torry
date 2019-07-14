@@ -7,14 +7,14 @@ import 'dart:async';
 import 'package:torry/constants/constants.dart' as constants;
 import 'package:torry/torrDatabase/torrDatabase.dart';
 import 'package:torry/urlMods/urlMods.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 
 class searchView extends StatefulWidget {
   @override
   _searchViewState createState() => _searchViewState();
 }
 
-class _searchViewState extends State<searchView>
-    with AutomaticKeepAliveClientMixin<searchView> {
+class _searchViewState extends State<searchView> {
   String sortBy;
   String searchType;
   final _movieSearchController = TextEditingController();
@@ -27,8 +27,32 @@ class _searchViewState extends State<searchView>
   bool isPerformingRequest;
   bool needSuggestions = true;
 
-  @override
-  bool get wantKeepAlive => true;
+  static final MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    keywords: constants.keyWords,
+    childDirected: false,
+    testDevices: constants.testDeviceId,
+  );
+  InterstitialAd _downloadButtonAd = InterstitialAd(
+    // Replace the testAdUnitId with an ad unit id from the AdMob dash.
+    // https://developers.google.com/admob/android/test-ads
+    // https://developers.google.com/admob/ios/test-ads
+    adUnitId: constants.interstitialAdId,
+    targetingInfo: targetingInfo,
+    listener: (MobileAdEvent event) {
+      //print("InterstitialAd event is $event");
+    },
+  );
+
+  InterstitialAd _bookmarkButtonAd = InterstitialAd(
+    adUnitId: constants.bookmarkInterstitialAdId,
+    targetingInfo:  targetingInfo,
+  );
+
+
+  InterstitialAd _searchButtonAd = InterstitialAd(
+    adUnitId: constants.searchButtonAdId,
+    targetingInfo:  targetingInfo,
+  );
 
   _updateBookmarks() async {
     bookmarkedFiles = [];
@@ -52,6 +76,7 @@ class _searchViewState extends State<searchView>
   }
 
   Future _getList() async {
+    _searchButtonAd.show();
     suggestions = [];
     needSuggestions = false;
     isPerformingRequest = true;
@@ -142,29 +167,37 @@ class _searchViewState extends State<searchView>
       suggestions.add(sug);
       //print('get suggestions');
       //print(suggestions);
-      setState(() {});
       //print(primaryLinkMap.length);
     }
+    setState(() {});
+
   }
 
   void wraped_getList(String s) {
     _getList();
-  }
+   }
 
   @override
   void dispose() {
     _movieSearchController.dispose();
     super.dispose();
+    _downloadButtonAd?.dispose();
+    _bookmarkButtonAd?.dispose();
+    _searchButtonAd?.dispose();
   }
 
   @override
   initState() {
     super.initState();
+    _searchButtonAd.load();
+    _bookmarkButtonAd.load();
+    _downloadButtonAd.load();
     // Add listeners to this class
     isPerformingRequest = false;
     needSuggestions = false;
-    //print('initstate');
+    print('initstate');
     _getSuggestions();
+    _updateBookmarks();
   }
 
   @override
@@ -381,8 +414,12 @@ class _searchViewState extends State<searchView>
                               )),
                               IconButton(
                                   icon: Icon(Icons.file_download),
-                                  onPressed: () => launchMagnetLink(
-                                      _primaryLinkMap[index]['magnetLink'])),
+                                  onPressed: () async {
+                                    if(await canLaunchMagnetLink(constants.dummyMagLink)){
+                                      _downloadButtonAd.show();
+                                    }
+                                    launchMagnetLink(
+                                      _primaryLinkMap[index]['magnetLink']);}),
                               IconButton(
                                   icon: Icon(bookmarkedFiles.contains(
                                           _primaryLinkMap[index]['title'])
@@ -406,6 +443,7 @@ class _searchViewState extends State<searchView>
                                       bookmarkedFiles.remove(title);
                                       //print('bookmark removed');
                                     }
+                                    _bookmarkButtonAd.show();
                                     //_updateBookmarks();
                                     setState(() {});
                                   })

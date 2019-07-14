@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-import 'package:html/parser.dart';
-import 'package:html/dom.dart' as dom;
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:async';
-import 'package:torry/constants/constants.dart' as constants;
 import 'whatsHotListView.dart';
 import 'searchView.dart';
 import 'bookmarkListView.dart';
-
+import 'package:firebase_admob/firebase_admob.dart';
+import 'package:torry/constants/constants.dart' as constants;
 void main() => runApp(TorryMain());
 
 class TorryMain extends StatelessWidget {
@@ -32,21 +27,43 @@ class __HomePageState extends State<_HomePage>
   // constants
   TabController _tabController;
 
+  static final MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    keywords: constants.keyWords,
+    childDirected: false,
+    testDevices: constants.testDeviceId, // Android emulators are considered test devices
+  );
+
+  BannerAd myBanner = BannerAd(
+    adUnitId: constants.mainBannerAdId,
+    size: AdSize.smartBanner,
+    targetingInfo: targetingInfo,
+    listener: (MobileAdEvent event) {
+      //print("BannerAd event is $event");
+    },
+  );
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 3, initialIndex: 1);
+    _tabController = TabController(vsync: this, length: 2);
+    FirebaseAdMob.instance.initialize(appId: constants.appId);
+    myBanner
+      ..load()
+      ..show();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+    myBanner?.dispose();
+
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Torry',
       theme: ThemeData(
           // theme
           brightness: Brightness.light,
@@ -70,9 +87,9 @@ class __HomePageState extends State<_HomePage>
                   Tab(
                     icon: Icon(Icons.search,),
                   ),
-                  Tab(
+                  /*Tab(
                     icon: Icon(Icons.whatshot),
-                  ),
+                  ), */
                   Tab(
                     icon: Icon(Icons.bookmark_border),
                   ),
@@ -81,9 +98,10 @@ class __HomePageState extends State<_HomePage>
           body: TabBarView(controller: _tabController, children: [
             Container(
                 child: searchView()),
+            /*
             Container(
               child: whatsHotListView(),
-            ),
+            ), */
             Container(
               child: bookmarkListView(),
             )

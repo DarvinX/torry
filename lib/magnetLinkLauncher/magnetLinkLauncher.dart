@@ -15,3 +15,11 @@ void launchMagnetLink(String url) async {
     }
   }
 }
+
+Future<bool> canLaunchMagnetLink(String url) async {
+  if (await canLaunch(url)){
+    return true;
+  } else {
+    return false;
+  }
+}

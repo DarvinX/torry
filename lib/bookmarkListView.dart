@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'package:torry/torrDatabase/torrDatabase.dart';
-import 'dart:async';
+import 'package:torry/constants/constants.dart' as constants;
+import 'package:firebase_admob/firebase_admob.dart';
 
 class bookmarkListView extends StatefulWidget {
   @override
@@ -12,6 +13,19 @@ class _bookmarkListViewState extends State<bookmarkListView> {
 
   List<Map<String, dynamic>> _bookmarkMap = [];
   List<String> bookmarkedFiles = [];
+
+  static final MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    keywords: constants.keyWords,
+    childDirected: false,
+    testDevices: constants.testDeviceId,
+  );
+  InterstitialAd _downloadButtonAd = InterstitialAd(
+    adUnitId: constants.interstitialAdId,
+    targetingInfo: targetingInfo,
+    listener: (MobileAdEvent event) {
+      //print("InterstitialAd event is $event");
+    },
+  );
 
   bookmarkMap() async {
     return await TorrentDatabase.instance.torrents();
@@ -26,15 +40,34 @@ class _bookmarkListViewState extends State<bookmarkListView> {
     print('names');
     print(_bookmarkMap);
     setState(() {
-
     });
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
+    super.initState();
     _updateBookmarks();
-    return Container(
-          child: ListView.builder(
+    _downloadButtonAd.load();
+    print('initiated bookmark view');
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _downloadButtonAd?.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if(_bookmarkMap.length == 0){
+      return Center(
+        child: Text('No Bookmarks', style: TextStyle(fontSize: 50, color: Colors.grey),),
+      );
+    } else {
+      return Container(
+        child: ListView.builder(
             itemCount: _bookmarkMap.length,
             padding: const EdgeInsets.all(10.0),
             scrollDirection: Axis.vertical,
@@ -78,7 +111,8 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   fontStyle: FontStyle.italic),
                                             ),
                                           ],
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
                                         ),
                                         Expanded(
                                             child: Column(
@@ -89,7 +123,8 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   style: TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.grey,
-                                                      fontStyle: FontStyle.italic),
+                                                      fontStyle: FontStyle
+                                                          .italic),
                                                 ),
                                                 Text(
                                                   'leechers ' +
@@ -97,10 +132,12 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   style: TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.grey,
-                                                      fontStyle: FontStyle.italic),
+                                                      fontStyle: FontStyle
+                                                          .italic),
                                                 )
                                               ],
-                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .center,
                                             ))
                                       ],
                                     )
@@ -109,8 +146,14 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                 )),
                             IconButton(
                                 icon: Icon(Icons.file_download),
-                                onPressed: () =>
-                                    launchMagnetLink(_bookmarkMap[index]['magnetLink'])),
+                                onPressed: () async {
+                                  if (await canLaunchMagnetLink(
+                                      constants.dummyMagLink)) {
+                                    _downloadButtonAd.show();
+                                  }
+                                  launchMagnetLink(
+                                      _bookmarkMap[index]['magnetLink']);
+                                }),
                             IconButton(
                                 icon: Icon(Icons.delete),
                                 onPressed: () async {
@@ -123,21 +166,22 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                         Torrent.fromMap(_bookmarkMap[index]));
                                     bookmarkedFiles.add(title);
                                     print('bookmarked');
-
                                   } else {
-                                    TorrentDatabase.instance.deleteTorrent(title);
+                                    TorrentDatabase.instance.deleteTorrent(
+                                        title);
                                     bookmarkedFiles.remove(title);
                                     print('bookmark removed');
                                   }
-                                    _updateBookmarks();
+                                  _updateBookmarks();
                                 })
                           ],
                         ),
                       )
                     ],
                   ));
-            },
-          ),
-    );
+            }
+        ),
+      );
+    }
   }
 }
