@@ -1,4 +1,5 @@
 final List<String> url = [
+  'https://piratesbay.link',
   'https://bea247.in',
   'https://blueunblocked.club',
   'https://ikwilthepiratebaytpb.rocks',
