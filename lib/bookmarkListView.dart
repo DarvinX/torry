@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'package:torry/torrDatabase/torrDatabase.dart';
-import 'dart:async';
+import 'package:torry/constants/constants.dart' as constants;
 
 class bookmarkListView extends StatefulWidget {
   @override
@@ -26,15 +26,32 @@ class _bookmarkListViewState extends State<bookmarkListView> {
     print('names');
     print(_bookmarkMap);
     setState(() {
-
     });
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    // TODO: implement initState
+    super.initState();
     _updateBookmarks();
-    return Container(
-          child: ListView.builder(
+    print('initiated bookmark view');
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if(_bookmarkMap.length == 0){
+      return Center(
+        child: Text('No Bookmarks', style: TextStyle(fontSize: 50, color: Colors.grey),),
+      );
+    } else {
+      return Container(
+        child: ListView.builder(
             itemCount: _bookmarkMap.length,
             padding: const EdgeInsets.all(10.0),
             scrollDirection: Axis.vertical,
@@ -78,7 +95,8 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   fontStyle: FontStyle.italic),
                                             ),
                                           ],
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment
+                                              .start,
                                         ),
                                         Expanded(
                                             child: Column(
@@ -89,7 +107,8 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   style: TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.grey,
-                                                      fontStyle: FontStyle.italic),
+                                                      fontStyle: FontStyle
+                                                          .italic),
                                                 ),
                                                 Text(
                                                   'leechers ' +
@@ -97,10 +116,12 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                                   style: TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.grey,
-                                                      fontStyle: FontStyle.italic),
+                                                      fontStyle: FontStyle
+                                                          .italic),
                                                 )
                                               ],
-                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment
+                                                  .center,
                                             ))
                                       ],
                                     )
@@ -109,10 +130,17 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                 )),
                             IconButton(
                                 icon: Icon(Icons.file_download),
-                                onPressed: () =>
-                                    launchMagnetLink(_bookmarkMap[index]['magnetLink'])),
+                                color: Colors.blue,
+                                onPressed: () async {
+                                  if (await canLaunchMagnetLink(
+                                      constants.dummyMagLink)) {
+                                  }
+                                  launchMagnetLink(
+                                      _bookmarkMap[index]['magnetLink']);
+                                }),
                             IconButton(
                                 icon: Icon(Icons.delete),
+                                color: Colors.blueGrey,
                                 onPressed: () async {
                                   String title = _bookmarkMap[index]['title'];
                                   bool bookmarked =
@@ -123,21 +151,22 @@ class _bookmarkListViewState extends State<bookmarkListView> {
                                         Torrent.fromMap(_bookmarkMap[index]));
                                     bookmarkedFiles.add(title);
                                     print('bookmarked');
-
                                   } else {
-                                    TorrentDatabase.instance.deleteTorrent(title);
+                                    TorrentDatabase.instance.deleteTorrent(
+                                        title);
                                     bookmarkedFiles.remove(title);
                                     print('bookmark removed');
                                   }
-                                    _updateBookmarks();
+                                  _updateBookmarks();
                                 })
                           ],
                         ),
                       )
                     ],
                   ));
-            },
-          ),
-    );
+            }
+        ),
+      );
+    }
   }
 }

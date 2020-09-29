@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:html/parser.dart';
@@ -7,14 +9,15 @@ import 'dart:async';
 import 'package:torry/constants/constants.dart' as constants;
 import 'package:torry/torrDatabase/torrDatabase.dart';
 import 'package:torry/urlMods/urlMods.dart';
+import 'package:torry/dialogBox/dialogBox.dart';
+import 'package:share/share.dart';
 
 class searchView extends StatefulWidget {
   @override
   _searchViewState createState() => _searchViewState();
 }
 
-class _searchViewState extends State<searchView>
-    with AutomaticKeepAliveClientMixin<searchView> {
+class _searchViewState extends State<searchView> {
   String sortBy;
   String searchType;
   final _movieSearchController = TextEditingController();
@@ -26,9 +29,7 @@ class _searchViewState extends State<searchView>
   final _searchProtocol = '/s/?q=';
   bool isPerformingRequest;
   bool needSuggestions = true;
-
-  @override
-  bool get wantKeepAlive => true;
+  bool _noResult = false;
 
   _updateBookmarks() async {
     bookmarkedFiles = [];
@@ -39,22 +40,13 @@ class _searchViewState extends State<searchView>
     }
     //print(bookmarkedFiles);
   }
-
-  Future<String> getMagnetLink(dom.Element link, int index) async {
-    //extract the magnet link
-    var client = Client();
-    Response res = await client.get(_url[index] + link.attributes['href']);
-    var document = parse(res.body);
-    var magnetLink =
-        document.querySelector('div.download > a').attributes['href'];
-    //print(magnetLink);
-    return (magnetLink);
-  }
-
+  
   Future _getList() async {
     suggestions = [];
     needSuggestions = false;
     isPerformingRequest = true;
+    _noResult = false;
+    bool first_result = true;
     _updateBookmarks();
     //create a map of file name and magnet link
     String searchTerm = _movieSearchController.text;
@@ -67,39 +59,62 @@ class _searchViewState extends State<searchView>
 
     //searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
     String codedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
-
+    bool notActive;
     do {
-      String url =
-          _url.elementAt(index) + codedUrl;
+      String url = _url.elementAt(index) + codedUrl;
       print(url);
-      response = await client.get(url);
+      try {
+        response = await client.get(url);
+        notActive = false;
+      } on SocketException catch (_){
+        notActive = true;
+      }
 
       index++;
-    } while (response.statusCode != 200);
-
+    } while (notActive);
+    print("site is working");
     index = index - 1;
 
     var document = parse(response.body);
     List<dom.Element> searchResults = document.querySelectorAll('tbody > tr');
-
+    searchResults.removeAt(0);
+    print("collected search results " + searchResults.length.toString());
+    if(searchResults.length == 0){
+      print("no result found");
+      isPerformingRequest = false;
+      _noResult = true;
+        setState(() {});
+      return 0;
+    }
     for (var searchResult in searchResults) {
-      String tempCodedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
+      //print(searchResult.toString());
+      try{
+      String tempCodedUrl = getDecodedUrl(sortBy, searchType, _movieSearchController.text);
       print('searching for $codedUrl and $tempCodedUrl');
       if (codedUrl != tempCodedUrl) {
+
         isPerformingRequest = false;
+        _noResult = true;
         return 0;
       }
       dom.Element link = searchResult.querySelector('a.detLink');
+      
       List<String> details =
           searchResult.querySelector('font').text.split(', ');
       List<dom.Element> seedLeech = searchResult.querySelectorAll('td');
+      print("check point 1");
       String seeds = seedLeech[2].text;
+      
       if (int.parse(seeds) == 0) {
+        print("skipped a result");
         continue;
       }
       String leechs = seedLeech[3].text;
+      String magnetLink = searchResult.querySelector('td > a').attributes['href'];
       try {
-        String magnetLink = await getMagnetLink(link, index);
+        print("link:"+ link.toString());
+        //String magnetLink = await getMagnetLink(link, index);
+        print("check point 2");
         _primaryLinkMap.add({
           'title': link.text,
           'magnetLink': magnetLink,
@@ -110,10 +125,20 @@ class _searchViewState extends State<searchView>
         });
         //print('New result added');
         setState(() {});
-      } catch (e) {}
+      } catch (e) {
+        print(e);
+        continue;
+      }} catch(e){
+        print(e);
+        continue;
+      }
     }
     //print(primaryLinkMap.length);
     isPerformingRequest = false;
+    if (_primaryLinkMap.length == 0) {
+      _noResult = true;
+    }
+    print("end of _getList");
   }
 
   Future _getSuggestions() async {
@@ -142,9 +167,9 @@ class _searchViewState extends State<searchView>
       suggestions.add(sug);
       //print('get suggestions');
       //print(suggestions);
-      setState(() {});
       //print(primaryLinkMap.length);
     }
+    setState(() {});
   }
 
   void wraped_getList(String s) {
@@ -163,8 +188,9 @@ class _searchViewState extends State<searchView>
     // Add listeners to this class
     isPerformingRequest = false;
     needSuggestions = false;
-    //print('initstate');
+    print('initstate');
     _getSuggestions();
+    _updateBookmarks();
   }
 
   @override
@@ -198,7 +224,6 @@ class _searchViewState extends State<searchView>
                         icon: Icon(Icons.search),
                         iconSize: 30,
                         padding: EdgeInsets.fromLTRB(0, 12, 0, 0),
-                        focusColor: Colors.blue,
                         onPressed: () async {
                           _getList();
                         },
@@ -313,7 +338,7 @@ class _searchViewState extends State<searchView>
                     child: Column(
                       children: <Widget>[
                         Padding(
-                          padding: EdgeInsets.fromLTRB(10, 15, 0, 7),
+                          padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                           child: Row(
                             children: <Widget>[
                               Expanded(
@@ -379,36 +404,92 @@ class _searchViewState extends State<searchView>
                                 ],
                                 crossAxisAlignment: CrossAxisAlignment.start,
                               )),
-                              IconButton(
-                                  icon: Icon(Icons.file_download),
-                                  onPressed: () => launchMagnetLink(
-                                      _primaryLinkMap[index]['magnetLink'])),
-                              IconButton(
-                                  icon: Icon(bookmarkedFiles.contains(
-                                          _primaryLinkMap[index]['title'])
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border),
-                                  onPressed: () async {
-                                    String title =
-                                        _primaryLinkMap[index]['title'];
-                                    bool bookmarked =
-                                        bookmarkedFiles.contains(title);
+                              Row(
+                                children: <Widget>[
+                                  Container(
+                                      padding: const EdgeInsets.all(0.0),
+                                      //height: 30.0,
+                                      width: 50.0,
+                                      child: IconButton(
+                                          color: Colors.blue,
+                                          iconSize: 30,
+                                          padding: EdgeInsets.all(0.0),
+                                          icon: Icon(Icons.file_download),
+                                          onPressed: () async {
+                                            if (await canLaunchMagnetLink(
+                                                constants.dummyMagLink)) {
+                                            } else {
+                                              showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext
+                                                          context) =>
+                                                      CustomDialog(
+                                                          title:
+                                                              'Can\'t find any downloader',
+                                                          description:
+                                                              "You need a downoader in order to download things from torrent.",
+                                                          buttonText: "later"));
+                                            }
+                                            launchMagnetLink(
+                                                _primaryLinkMap[index]
+                                                    ['magnetLink']);
+                                          })),
+                                  Column(
+                                    children: <Widget>[
+                                      Container(
+                                          padding: const EdgeInsets.all(0.0),
+                                          height: 40.0,
+                                          width: 30.0,
+                                          child: IconButton(
+                                              iconSize: 25,
+                                              color: Colors.blueGrey,
+                                              icon: Icon(
+                                                  bookmarkedFiles.contains(
+                                                          _primaryLinkMap[index]
+                                                              ['title'])
+                                                      ? Icons.bookmark
+                                                      : Icons.bookmark_border),
+                                              onPressed: () async {
+                                                String title =
+                                                    _primaryLinkMap[index]
+                                                        ['title'];
+                                                bool bookmarked =
+                                                    bookmarkedFiles
+                                                        .contains(title);
 
-                                    if (!bookmarked) {
-                                      TorrentDatabase.instance.insert(
-                                          Torrent.fromMap(
-                                              _primaryLinkMap[index]));
-                                      bookmarkedFiles.add(title);
-                                      //print('bookmarked');
-                                    } else {
-                                      TorrentDatabase.instance
-                                          .deleteTorrent(title);
-                                      bookmarkedFiles.remove(title);
-                                      //print('bookmark removed');
-                                    }
-                                    //_updateBookmarks();
-                                    setState(() {});
-                                  })
+                                                if (!bookmarked) {
+                                                  TorrentDatabase.instance
+                                                      .insert(Torrent.fromMap(
+                                                          _primaryLinkMap[
+                                                              index]));
+                                                  bookmarkedFiles.add(title);
+                                                  //print('bookmarked');
+                                                } else {
+                                                  TorrentDatabase.instance
+                                                      .deleteTorrent(title);
+                                                  bookmarkedFiles.remove(title);
+                                                  //print('bookmark removed');
+                                                }
+                                                //_updateBookmarks();
+                                                setState(() {});
+                                              })),
+                                      Container(
+                                          padding: const EdgeInsets.all(0.0),
+                                          height: 40.0,
+                                          width: 30.0,
+                                          child: IconButton(
+                                            color: Colors.blueGrey,
+                                            iconSize: 25,
+                                            icon: Icon(Icons.share),
+                                            onPressed: () {
+                                              Share.share(_primaryLinkMap[index]
+                                                  ['magnetLink']);
+                                            },
+                                          )),
+                                    ],
+                                  )
+                                ],
+                              )
                             ],
                           ),
                         )
@@ -423,17 +504,28 @@ class _searchViewState extends State<searchView>
   }
 
   Widget _buildProgressIndicator() {
-    return new Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: new Center(
-        child: new Opacity(
-          opacity: isPerformingRequest ? 1.0 : 0.0,
-          child: CircularProgressIndicator(
-            backgroundColor: Colors.redAccent,
-            strokeWidth: 3,
-          ),
-        ),
-      ),
-    );
+    return _noResult
+        ? Container(
+            child: Column(
+            children: <Widget>[
+              Icon(Icons.sentiment_dissatisfied, size: 50,color: Colors.blueGrey,),
+              Text(
+                "No results found...",
+                style: TextStyle(fontSize: 30, color: Colors.grey),
+              ),
+            ],
+          ))
+        : Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Center(
+              child: Opacity(
+                opacity: isPerformingRequest ? 1.0 : 0.0,
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.redAccent,
+                  strokeWidth: 3,
+                ),
+              ),
+            ),
+          );
   }
 }

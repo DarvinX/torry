@@ -16,6 +16,20 @@ class _whatsHotListViewState extends State<whatsHotListView> {
   List<String> _categories = constants.categories;
   Map<String, String> _categoryMap = constants.categoryMap;
 
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,18 +69,35 @@ class _ExpandableListViewState extends State<ExpandableListView>
   Map<String, String> _categoryMap = constants.categoryMap;
   List<Map<String, dynamic>> _primaryLinkMap = [];
   List<String> _url = constants.url;
+  TorrentDatabase torr = TorrentDatabase.instance;
+
 
   @override
   bool get wantKeepAlive => true;
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //print('initiated');
+    _updateThings();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    //print('disposed');
+  }
+
   _updateThings() async {
     bookmarkedFiles = [];
-    List marks = await TorrentDatabase.instance.bookmarkedList();
+    List marks = await torr.bookmarkedList();
     int len = marks.length;
     for (var i = 0; i < len; i++) {
       bookmarkedFiles.add(marks[i]['title']);
     }
-    print(bookmarkedFiles);
+    //print(bookmarkedFiles);
   }
 
   Future<String> getMagnetLink(dom.Element link, int index) async {
@@ -82,9 +113,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
 
   Future _getList(String mapKey) async {
     isPerformingRequest = true;
-    if (!expandFlag) {
-      return 0;
-    }
     _updateThings();
 
     //create a map of file name and magnet link
@@ -97,7 +125,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
 
     do {
       String url = _url.elementAt(index);
-      print(url + searchTerm);
+      //print(url + searchTerm);
 
       response = await client.get(url + searchTerm);
 
@@ -118,7 +146,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
       } else {
         return 0;
       }
-      print('loop starting');
+      //print('loop starting');
       dom.Element link = searchResult.querySelector('a.detLink');
       if (loadedFiles.contains(link.text)) {
         continue;
@@ -128,7 +156,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
       List<dom.Element> seedLeech = searchResult.querySelectorAll('td');
       String seeds = seedLeech[2].text;
       String leechs = seedLeech[3].text;
-      print(seeds);
+      //print(seeds);
       try {
         String magnetLink = await getMagnetLink(link, index);
         _primaryLinkMap.add({
@@ -146,7 +174,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
     //print(primaryLinkMap.length);
     isPerformingRequest = false;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -173,8 +200,11 @@ class _ExpandableListViewState extends State<ExpandableListView>
                 ),
                 onPressed: () {
                   setState(() {
-                    expandFlag = !expandFlag;
+                    if(!expandFlag){
                     _getList(widget.title);
+                    }
+                    expandFlag = !expandFlag;
+
                   });
                 }),
           ],
@@ -259,8 +289,14 @@ class _ExpandableListViewState extends State<ExpandableListView>
                             )),
                             IconButton(
                                 icon: Icon(Icons.file_download),
-                                onPressed: () => launchMagnetLink(
-                                    _primaryLinkMap[index]['magnetLink'])),
+                                onPressed: () async {
+                                  String magLink = _primaryLinkMap[index]['magnetLink'];
+                                  if(await canLaunchMagnetLink(constants.dummyMagLink)){
+                                    //print('interstitial add');
+                                  }
+
+                                  launchMagnetLink(magLink);
+                                }),
                             IconButton(
                                 icon: Icon(bookmarkedFiles.contains(
                                         _primaryLinkMap[index]['title'])
@@ -271,20 +307,20 @@ class _ExpandableListViewState extends State<ExpandableListView>
                                       _primaryLinkMap[index]['title'];
                                   bool bookmarked =
                                       bookmarkedFiles.contains(title);
-                                  int i = await TorrentDatabase.instance.insert(
+                                  int i = await torr.insert(
                                       Torrent.fromMap(_primaryLinkMap[index]));
 
                                   if (!bookmarked) {
                                     bookmarkedFiles.add(title);
-                                    print('bookmarked');
+                                    //print('bookmarked');
                                   } else {
-                                    TorrentDatabase.instance
+                                    torr
                                         .deleteTorrent(title);
                                     bookmarkedFiles.remove(title);
-                                    print('bookmark removed');
+                                    //print('bookmark removed');
                                   }
 
-                                  print('new marklist $bookmarkedFiles');
+                                  //print('new marklist $bookmarkedFiles');
                                   setState(() {});
                                 })
                           ],
