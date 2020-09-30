@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'package:torry/dialogBox/dialogBox.dart';
-import 'package:torry/constants/constants.dart' as constants;
+import 'package:torry/utils/constants.dart' as constants;
 
 class addLink extends StatefulWidget {
   @override

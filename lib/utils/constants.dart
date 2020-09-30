@@ -1,6 +1,6 @@
 final List<String> url = [
+  'https://pirateproxy.ink',
   'https://proxybay.tech',
-  'https://uspirateproxy.com',
   'https://tpb-proxy.net',
   'https://tpbunblocked.net',
   'https://piratebays.biz',
@@ -14,13 +14,10 @@ final List<String> url = [
 
 ];
 
-final mainBannerAdId = 'ca-app-pub-7242673405641060/8876341412';
-final interstitialAdId = 'ca-app-pub-7242673405641060/6256318440';
-final bookmarkInterstitialAdId = 'ca-app-pub-7242673405641060/5623917142';
-final searchButtonAdId = 'ca-app-pub-7242673405641060/3673800408';
-final appId = 'ca-app-pub-7242673405641060~2934529842';
-final String saviorLink =
-    'https://play.google.com/store/apps/details?id=com.darvin.whatsapp_savior';
+final int nRetry = 3;
+
+final String saviorLink = 'https://google.com';
+
 final String mailUs =
     'mailto:torrywithease@gmail.com?subject=Torry Feedback';
 
@@ -44,7 +41,7 @@ final Map<String, String> categoryMap = {
 
 String getAPIUrl(String text) {
   text = text.replaceAll(RegExp(r' '), '+');
-  return "http://suggestqueries.google.com/complete/search?output=toolbar&q=$text&hl=en";
+  return "https://cors-anywhere.herokuapp.com/http://suggestqueries.google.com/complete/search?output=toolbar&q=$text&hl=en";
 }
 
 final List<String> sortByList = [

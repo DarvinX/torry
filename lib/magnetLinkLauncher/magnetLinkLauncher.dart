@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:torry/constants/constants.dart' as constants;
+import 'package:torry/utils/constants.dart' as constants;
 
 final String appPackageName = 'com.utorrent.client&hl=en';
 final String appLink = 'market://details?id=' + appPackageName;

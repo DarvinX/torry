@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:torry/constants/constants.dart' as constants;
+import 'package:torry/utils/constants.dart' as constants;
 import 'package:http/http.dart';
 import 'package:html/parser.dart';
 import 'package:html/dom.dart' as dom;
 import 'dart:async';
-import 'package:torry/torrDatabase/torrDatabase.dart';
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 
 class whatsHotListView extends StatefulWidget {
@@ -69,7 +68,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
   Map<String, String> _categoryMap = constants.categoryMap;
   List<Map<String, dynamic>> _primaryLinkMap = [];
   List<String> _url = constants.url;
-  TorrentDatabase torr = TorrentDatabase.instance;
 
 
   @override
@@ -80,7 +78,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
     // TODO: implement initState
     super.initState();
     //print('initiated');
-    _updateThings();
   }
 
   @override
@@ -90,15 +87,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
     //print('disposed');
   }
 
-  _updateThings() async {
-    bookmarkedFiles = [];
-    List marks = await torr.bookmarkedList();
-    int len = marks.length;
-    for (var i = 0; i < len; i++) {
-      bookmarkedFiles.add(marks[i]['title']);
-    }
-    //print(bookmarkedFiles);
-  }
 
   Future<String> getMagnetLink(dom.Element link, int index) async {
     //extract the magnet link
@@ -113,7 +101,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
 
   Future _getList(String mapKey) async {
     isPerformingRequest = true;
-    _updateThings();
 
     //create a map of file name and magnet link
     String searchTerm = _categoryMap[mapKey];
@@ -305,22 +292,6 @@ class _ExpandableListViewState extends State<ExpandableListView>
                                 onPressed: () async {
                                   String title =
                                       _primaryLinkMap[index]['title'];
-                                  bool bookmarked =
-                                      bookmarkedFiles.contains(title);
-                                  int i = await torr.insert(
-                                      Torrent.fromMap(_primaryLinkMap[index]));
-
-                                  if (!bookmarked) {
-                                    bookmarkedFiles.add(title);
-                                    //print('bookmarked');
-                                  } else {
-                                    torr
-                                        .deleteTorrent(title);
-                                    bookmarkedFiles.remove(title);
-                                    //print('bookmark removed');
-                                  }
-
-                                  //print('new marklist $bookmarkedFiles');
                                   setState(() {});
                                 })
                           ],

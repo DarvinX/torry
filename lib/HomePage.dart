@@ -1,8 +1,8 @@
-//import 'whatsHotListView.dart';
+import 'whatsHotListView.dart';
 import 'package:flutter/material.dart';
-import 'searchView.dart';
-import 'bookmarkListView.dart';
-import 'package:torry/constants/constants.dart' as constants;
+import 'SearchView.dart';
+//import 'bookmarkListView.dart';
+import 'package:torry/utils/constants.dart' as constants;
 import 'package:share/share.dart';
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'package:torry/addLinkView.dart';
@@ -121,7 +121,8 @@ class _HomePageState extends State<HomePage>
                                       ))
                                     ],
                                   ))))
-                    */],
+                    */
+                    ],
                   ),
                 ),
               )),
@@ -157,14 +158,14 @@ class _HomePageState extends State<HomePage>
             Container(
               child: addLink(),
             ),
-            Container(child: searchView()),
-            /*
+            Container(child: SearchView()),
             Container(
               child: whatsHotListView(),
-            ), */
+            ),
+            /*
             Container(
               child: bookmarkListView(),
-            )
+            )*/
           ]),
         ),
       ),

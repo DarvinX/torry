@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -6,18 +7,20 @@ import 'package:html/parser.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'dart:async';
-import 'package:torry/constants/constants.dart' as constants;
-import 'package:torry/torrDatabase/torrDatabase.dart';
+import 'package:torry/utils/constants.dart' as constants;
+//import 'package:torry/torrDatabase/torrDatabase.dart';
 import 'package:torry/urlMods/urlMods.dart';
 import 'package:torry/dialogBox/dialogBox.dart';
 import 'package:share/share.dart';
+import 'package:torry/utils/utils.dart' as utils;
+import 'package:filesize/filesize.dart';
 
-class searchView extends StatefulWidget {
+class SearchView extends StatefulWidget {
   @override
-  _searchViewState createState() => _searchViewState();
+  _SearchViewState createState() => _SearchViewState();
 }
 
-class _searchViewState extends State<searchView> {
+class _SearchViewState extends State<SearchView> {
   String sortBy;
   String searchType;
   final _movieSearchController = TextEditingController();
@@ -26,109 +29,96 @@ class _searchViewState extends State<searchView> {
   List<String> bookmarkedFiles = [];
   List<Map<String, dynamic>> _primaryLinkMap = [];
   List<String> suggestions = ['tamal', 'hansda'];
-  final _searchProtocol = '/s/?q=';
   bool isPerformingRequest;
   bool needSuggestions = true;
   bool _noResult = false;
 
-  _updateBookmarks() async {
-    bookmarkedFiles = [];
-    List marks = await TorrentDatabase.instance.bookmarkedList();
-    int len = marks.length;
-    for (var i = 0; i < len; i++) {
-      bookmarkedFiles.add(marks[i]['title']);
-    }
-    //print(bookmarkedFiles);
-  }
-  
   Future _getList() async {
     suggestions = [];
     needSuggestions = false;
     isPerformingRequest = true;
     _noResult = false;
-    bool first_result = true;
-    _updateBookmarks();
     //create a map of file name and magnet link
     String searchTerm = _movieSearchController.text;
     Response response;
-    int index = 0;
 
     _primaryLinkMap = [];
     setState(() {});
     var client = Client();
 
-    //searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
     String codedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
-    bool notActive;
-    do {
-      String url = _url.elementAt(index) + codedUrl;
+    for (var i = 0; i < constants.nRetry; i++) {
+      String url = utils.getUrl(searchTerm);
       print(url);
       try {
         response = await client.get(url);
-        notActive = false;
-      } on SocketException catch (_){
-        notActive = true;
+        break;
+      } catch (err) {
+        print(err);
       }
-
-      index++;
-    } while (notActive);
+    }
     print("site is working");
-    index = index - 1;
 
-    var document = parse(response.body);
-    List<dom.Element> searchResults = document.querySelectorAll('tbody > tr');
-    searchResults.removeAt(0);
+    var searchResults = json.decode(response.body);
     print("collected search results " + searchResults.length.toString());
-    if(searchResults.length == 0){
+    if (searchResults.length == 0) {
       print("no result found");
       isPerformingRequest = false;
       _noResult = true;
-        setState(() {});
+      setState(() {});
       return 0;
     }
     for (var searchResult in searchResults) {
       //print(searchResult.toString());
-      try{
-      String tempCodedUrl = getDecodedUrl(sortBy, searchType, _movieSearchController.text);
-      print('searching for $codedUrl and $tempCodedUrl');
-      if (codedUrl != tempCodedUrl) {
-
-        isPerformingRequest = false;
-        _noResult = true;
-        return 0;
-      }
-      dom.Element link = searchResult.querySelector('a.detLink');
-      
-      List<String> details =
-          searchResult.querySelector('font').text.split(', ');
-      List<dom.Element> seedLeech = searchResult.querySelectorAll('td');
-      print("check point 1");
-      String seeds = seedLeech[2].text;
-      
-      if (int.parse(seeds) == 0) {
-        print("skipped a result");
-        continue;
-      }
-      String leechs = seedLeech[3].text;
-      String magnetLink = searchResult.querySelector('td > a').attributes['href'];
       try {
-        print("link:"+ link.toString());
-        //String magnetLink = await getMagnetLink(link, index);
-        print("check point 2");
-        _primaryLinkMap.add({
-          'title': link.text,
-          'magnetLink': magnetLink,
-          'date': details[0],
-          'size': details[1],
-          'seeds': seeds,
-          'leechs': leechs,
-        });
-        //print('New result added');
-        setState(() {});
+        String tempCodedUrl =
+            getDecodedUrl(sortBy, searchType, _movieSearchController.text);
+        print('searching for $codedUrl and $tempCodedUrl');
+        if (codedUrl != tempCodedUrl) {
+          isPerformingRequest = false;
+          _noResult = true;
+          return 0;
+        }
+
+        //collect data from json
+        String name = searchResult['name'];
+        String seeds = searchResult['seeders'];
+        String leechs = searchResult['seeders'];
+        String dateMillis = searchResult['added'];
+        String sizeBytes = searchResult['size'];
+
+        //format the dates
+        var now = new DateTime.fromMillisecondsSinceEpoch(
+            int.parse(dateMillis) * 1000);
+        String date =
+            "${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+        //format filesize
+        String size = filesize(sizeBytes);
+
+        //skip the result if it has no seeder
+        if (int.parse(seeds) == 0) {
+          print("skipped a result");
+          continue;
+        }
+
+        String magnetLink = searchResult['info_hash'];
+        try {
+          _primaryLinkMap.add({
+            'title': name,
+            'magnetLink': magnetLink,
+            'date': date,
+            'size': size,
+            'seeds': seeds,
+            'leechs': leechs,
+          });
+          //print('New result added');
+          setState(() {});
+        } catch (e) {
+          print(e);
+          continue;
+        }
       } catch (e) {
-        print(e);
-        continue;
-      }} catch(e){
         print(e);
         continue;
       }
@@ -143,7 +133,6 @@ class _searchViewState extends State<searchView> {
 
   Future _getSuggestions() async {
     needSuggestions = true;
-    //create a map of file name and magnet link
     String searchTerm = _movieSearchController.text;
     Response response;
     suggestions = [];
@@ -165,9 +154,6 @@ class _searchViewState extends State<searchView> {
       }
       String sug = searchResult.attributes['data'];
       suggestions.add(sug);
-      //print('get suggestions');
-      //print(suggestions);
-      //print(primaryLinkMap.length);
     }
     setState(() {});
   }
@@ -189,8 +175,6 @@ class _searchViewState extends State<searchView> {
     isPerformingRequest = false;
     needSuggestions = false;
     print('initstate');
-    _getSuggestions();
-    _updateBookmarks();
   }
 
   @override
@@ -379,7 +363,7 @@ class _searchViewState extends State<searchView> {
                                           child: Column(
                                         children: <Widget>[
                                           Text(
-                                            'seeders ' +
+                                            'seeders: ' +
                                                 _primaryLinkMap[index]['seeds'],
                                             style: TextStyle(
                                                 fontSize: 13,
@@ -387,7 +371,7 @@ class _searchViewState extends State<searchView> {
                                                 fontStyle: FontStyle.italic),
                                           ),
                                           Text(
-                                            'leechers ' +
+                                            'leechers: ' +
                                                 _primaryLinkMap[index]
                                                     ['leechs'],
                                             style: TextStyle(
@@ -409,7 +393,7 @@ class _searchViewState extends State<searchView> {
                                   Container(
                                       padding: const EdgeInsets.all(0.0),
                                       //height: 30.0,
-                                      width: 50.0,
+                                      width: 30.0,
                                       child: IconButton(
                                           color: Colors.blue,
                                           iconSize: 30,
@@ -436,7 +420,7 @@ class _searchViewState extends State<searchView> {
                                           })),
                                   Column(
                                     children: <Widget>[
-                                      Container(
+                                      /*Container(
                                           padding: const EdgeInsets.all(0.0),
                                           height: 40.0,
                                           width: 30.0,
@@ -453,30 +437,12 @@ class _searchViewState extends State<searchView> {
                                                 String title =
                                                     _primaryLinkMap[index]
                                                         ['title'];
-                                                bool bookmarked =
-                                                    bookmarkedFiles
-                                                        .contains(title);
-
-                                                if (!bookmarked) {
-                                                  TorrentDatabase.instance
-                                                      .insert(Torrent.fromMap(
-                                                          _primaryLinkMap[
-                                                              index]));
-                                                  bookmarkedFiles.add(title);
-                                                  //print('bookmarked');
-                                                } else {
-                                                  TorrentDatabase.instance
-                                                      .deleteTorrent(title);
-                                                  bookmarkedFiles.remove(title);
-                                                  //print('bookmark removed');
-                                                }
-                                                //_updateBookmarks();
                                                 setState(() {});
-                                              })),
+                                              })),*/
                                       Container(
                                           padding: const EdgeInsets.all(0.0),
-                                          height: 40.0,
-                                          width: 30.0,
+                                          //height: 40.0,
+                                          width: 40.0,
                                           child: IconButton(
                                             color: Colors.blueGrey,
                                             iconSize: 25,
@@ -508,7 +474,11 @@ class _searchViewState extends State<searchView> {
         ? Container(
             child: Column(
             children: <Widget>[
-              Icon(Icons.sentiment_dissatisfied, size: 50,color: Colors.blueGrey,),
+              Icon(
+                Icons.sentiment_dissatisfied,
+                size: 50,
+                color: Colors.blueGrey,
+              ),
               Text(
                 "No results found...",
                 style: TextStyle(fontSize: 30, color: Colors.grey),
