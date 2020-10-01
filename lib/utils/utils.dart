@@ -43,3 +43,7 @@ String getUrl(String searchTerm, {String category = '0'}) {
   searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
   return 'https://cors-anywhere.herokuapp.com/https://pirateproxy.ink/api?url=/q.php?q=${searchTerm}&cat=0';
 }
+
+String getMagnetLink(String hash, String name) {
+  return "magnet:?xt=urn:btih:$hash&amp;dn=${name.replaceAll(r' ', '%20')}&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2920%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&amp;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce";
+}

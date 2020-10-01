@@ -5,17 +5,18 @@ import 'package:torry/utils/constants.dart' as constants;
 final String appPackageName = 'com.utorrent.client&hl=en';
 final String appLink = 'market://details?id=' + appPackageName;
 
-
 void launchMagnetLink(String url) async {
-  if (await canLaunch(url)) {
+  print(url);
+  try {
     await launch(url);
-  } else {
-    throw 'Could not launch magnetLink';
+  } catch (e) {
+    print(e);
   }
 }
 
 Future<bool> canLaunchMagnetLink(String url) async {
-  if (await canLaunch(url)){
+  if (await canLaunch(url)) {
+    print("can launch");
     return true;
   } else {
     return false;
@@ -23,39 +24,34 @@ Future<bool> canLaunchMagnetLink(String url) async {
 }
 
 void launchAppLink() async {
-  if(await canLaunch(appLink)){
+  if (await canLaunch(appLink)) {
     await launch(appLink);
-  }
-  else {
+  } else {
     throw 'Could not launch appLink';
   }
-
 }
 
-void launchTorryLink() async{
-  if(await canLaunch(appLink)){
+void launchTorryLink() async {
+  if (await canLaunch(appLink)) {
     await launch(constants.torryLink);
-  }
-  else {
+  } else {
     throw 'Could not launch appLink';
   }
 }
 
-void launchSaviorLink() async{
-  if(await canLaunch(appLink)){
+void launchSaviorLink() async {
+  if (await canLaunch(appLink)) {
     await launch(constants.saviorLink);
-  }
-  else {
+  } else {
     throw 'Could not launch appLink';
   }
 }
 
-void launchMailUsURI() async{
+void launchMailUsURI() async {
   String link = constants.mailUs;
-  if(await canLaunch(link)){
+  if (await canLaunch(link)) {
     await launch(link);
-  }
-  else {
+  } else {
     throw 'Could not launch appLink';
   }
 }

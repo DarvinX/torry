@@ -11,15 +11,13 @@ final List<String> url = [
   'https://tpb.world',
   'https://tpbproxy.vip',
   'https://tpb.icu'
-
 ];
 
 final int nRetry = 3;
 
 final String saviorLink = 'https://google.com';
 
-final String mailUs =
-    'mailto:torrywithease@gmail.com?subject=Torry Feedback';
+final String mailUs = 'mailto:torrywithease@gmail.com?subject=Torry Feedback';
 
 final List<String> categories = [
   'Movies',
@@ -86,5 +84,9 @@ final List<String> keyWords = [
   'hindi songs',
 ];
 
+final Uri param = Uri(
+    scheme: 'magnet',
+    query:
+        "xt=urn:btih:dbf21fc9a28d7c292b5cd9462683a1e150d4e0e3&dn=John.Wick.3.2019.HDRip.XviD.AC3-EVO&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969");
 final dummyMagLink =
     "magnet:?xt=urn:btih:dbf21fc9a28d7c292b5cd9462683a1e150d4e0e3&dn=John.Wick.3.2019.HDRip.XviD.AC3-EVO&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80&tr=udp%3A%2F%2Fopen.demonii.com%3A1337&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Fexodus.desync.com%3A6969";

@@ -37,7 +37,7 @@ String getDecodedUrl(String sortBy, String searchType, String searchTerm) {
       sortCode = '0';
   }
 
-  switch(searchType){
+  switch (searchType) {
     case 'Video':
       typeCode = '200';
       break;

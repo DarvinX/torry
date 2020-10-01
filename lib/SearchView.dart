@@ -86,6 +86,7 @@ class _SearchViewState extends State<SearchView> {
         String leechs = searchResult['seeders'];
         String dateMillis = searchResult['added'];
         String sizeBytes = searchResult['size'];
+        String hash = searchResult['info_hash'];
 
         //format the dates
         var now = new DateTime.fromMillisecondsSinceEpoch(
@@ -96,13 +97,15 @@ class _SearchViewState extends State<SearchView> {
         //format filesize
         String size = filesize(sizeBytes);
 
+        //generate magnet link
+        String magnetLink = utils.getMagnetLink(hash, name);
+
         //skip the result if it has no seeder
         if (int.parse(seeds) == 0) {
           print("skipped a result");
           continue;
         }
 
-        String magnetLink = searchResult['info_hash'];
         try {
           _primaryLinkMap.add({
             'title': name,
@@ -400,9 +403,12 @@ class _SearchViewState extends State<SearchView> {
                                           padding: EdgeInsets.all(0.0),
                                           icon: Icon(Icons.file_download),
                                           onPressed: () async {
-                                            if (await canLaunchMagnetLink(
-                                                constants.dummyMagLink)) {
-                                            } else {
+                                            try {
+                                              launchMagnetLink(
+                                                  constants.dummyMagLink);
+                                            } catch (e) {
+                                              print(e);
+
                                               showDialog(
                                                   context: context,
                                                   builder: (BuildContext
@@ -414,9 +420,11 @@ class _SearchViewState extends State<SearchView> {
                                                               "You need a downoader in order to download things from torrent.",
                                                           buttonText: "later"));
                                             }
-                                            launchMagnetLink(
-                                                _primaryLinkMap[index]
-                                                    ['magnetLink']);
+                                            print("1");
+
+                                            //
+                                            //    _primaryLinkMap[index]
+                                            //        ['magnetLink']);
                                           })),
                                   Column(
                                     children: <Widget>[
