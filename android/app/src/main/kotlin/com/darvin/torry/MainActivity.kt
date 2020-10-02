@@ -1,4 +1,4 @@
-package com.darvin.torry
+package com.darvin.Torry
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

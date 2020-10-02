@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
+//import 'package:flutter/painting.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:Torry/utils/constants.dart' as constants;
+import 'dart:js' as js;
+import 'dart:html';
 
 class Torrent {
   final String id;
@@ -41,9 +46,68 @@ Future<List<Torrent>> fetchTorrents(String url) async {
 //url stuff
 String getUrl(String searchTerm, {String category = '0'}) {
   searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
-  return 'https://cors-anywhere.herokuapp.com/https://pirateproxy.ink/api?url=/q.php?q=${searchTerm}&cat=0';
+  return 'https://cors-anywhere.herokuapp.com/https://pirateproxy.ink/api?url=/q.php?q=$searchTerm&cat=0';
 }
 
 String getMagnetLink(String hash, String name) {
   return "magnet:?xt=urn:btih:$hash&amp;dn=${name.replaceAll(r' ', '%20')}&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&amp;tr=udp%3A%2F%2F9.rarbg.to%3A2920%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&amp;tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.pirateparty.gr%3A6969%2Fannounce&amp;tr=udp%3A%2F%2Ftracker.cyberia.is%3A6969%2Fannounce";
+}
+
+void launchMagnetLink(String url) async {
+  print(url);
+  try {
+    await launch(url);
+  } catch (e) {
+    print(e);
+  }
+}
+
+Future<bool> canLaunchMagnetLink(String url) async {
+  if (await canLaunch(url)) {
+    print("can launch");
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void launchAppLink() async {
+  if (await canLaunch(constants.appLink)) {
+    await launch(constants.appLink);
+  } else {
+    throw 'Could not launch appLink';
+  }
+}
+
+void launchTorryLink() async {
+  if (await canLaunch(constants.appLink)) {
+    await launch(constants.TorryLink);
+  } else {
+    throw 'Could not launch appLink';
+  }
+}
+
+void launchSaviorLink() async {
+  if (await canLaunch(constants.appLink)) {
+    await launch(constants.saviorLink);
+  } else {
+    throw 'Could not launch appLink';
+  }
+}
+
+void launchMailUsURI() async {
+  String link = constants.mailUs;
+  if (await canLaunch(link)) {
+    await launch(link);
+  } else {
+    throw 'Could not launch appLink';
+  }
+}
+
+String getDetailsUrl(String id) {
+  return 'https://cors-anywhere.herokuapp.com/https://piratesbay.link/apibay/t.php?id=$id';
+}
+
+String currentUrl() {
+  return js.context['location']['href'];
 }

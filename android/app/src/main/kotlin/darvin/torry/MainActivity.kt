@@ -1,4 +1,4 @@
-package darvin.torry
+package darvin.Torry
 
 import io.flutter.embedding.android.FlutterActivity
 

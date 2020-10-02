@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
+import 'package:Torry/utils/utils.dart' as utils;
 
 class Consts {
   Consts._();
@@ -67,10 +67,7 @@ class CustomDialog extends StatelessWidget {
               Text(
                 description,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.grey
-                ),
+                style: TextStyle(fontSize: 16.0, color: Colors.grey),
               ),
               SizedBox(height: 24.0),
               Align(
@@ -83,15 +80,20 @@ class CustomDialog extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop(); // To close the dialog
                         },
-                        child: Text('Later', style: TextStyle(fontSize: 20),),
+                        child: Text(
+                          'Later',
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
                       FlatButton(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          launchAppLink();},
+                          utils.launchAppLink();
+                        },
                         child: Text(
                           'Install Now',
-                          style: TextStyle(color: Colors.blueAccent, fontSize: 20),
+                          style:
+                              TextStyle(color: Colors.blueAccent, fontSize: 20),
                         ),
                       )
                     ],

@@ -1,21 +1,26 @@
 {
-    "name": "torry",
-    "short_name": "torry",
+    "name": "Torry",
+    "short_name": "Torry",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Torrent search app",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
         {
-            "src": "icons/Icon-192.png",
-            "sizes": "192x192",
+            "src": "icons/128x128.png",
+            "sizes": "128x128",
             "type": "image/png"
         },
         {
-            "src": "icons/Icon-512.png",
+            "src": "icons/256x256.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/512x512.png",
             "sizes": "512x512",
             "type": "image/png"
         }

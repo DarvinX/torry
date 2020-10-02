@@ -1,18 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
+//import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:html/parser.dart';
 import 'package:html/dom.dart' as dom;
-import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
 import 'dart:async';
-import 'package:torry/utils/constants.dart' as constants;
-//import 'package:torry/torrDatabase/torrDatabase.dart';
-import 'package:torry/urlMods/urlMods.dart';
-import 'package:torry/dialogBox/dialogBox.dart';
+import 'package:Torry/utils/constants.dart' as constants;
+//import 'package:Torry/torrDatabase/torrDatabase.dart';
+import 'package:Torry/urlMods/urlMods.dart';
+import 'package:Torry/dialogBox/dialogBox.dart';
 import 'package:share/share.dart';
-import 'package:torry/utils/utils.dart' as utils;
+import 'package:Torry/utils/utils.dart' as utils;
 import 'package:filesize/filesize.dart';
 
 class SearchView extends StatefulWidget {
@@ -24,7 +23,7 @@ class _SearchViewState extends State<SearchView> {
   String sortBy;
   String searchType;
   final _movieSearchController = TextEditingController();
-  final List<String> _url = constants.url;
+  //final List<String> _url = constants.url;
   List<String> loadedFiles = [];
   List<String> bookmarkedFiles = [];
   List<Map<String, dynamic>> _primaryLinkMap = [];
@@ -33,7 +32,10 @@ class _SearchViewState extends State<SearchView> {
   bool needSuggestions = true;
   bool _noResult = false;
 
-  Future _getList() async {
+  Future _getList({String initId = "", bool fromInit = false}) async {
+    if (initId == "" && fromInit) {
+      return 0;
+    }
     suggestions = [];
     needSuggestions = false;
     isPerformingRequest = true;
@@ -48,7 +50,8 @@ class _SearchViewState extends State<SearchView> {
 
     String codedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
     for (var i = 0; i < constants.nRetry; i++) {
-      String url = utils.getUrl(searchTerm);
+      String url =
+          initId == "" ? utils.getUrl(searchTerm) : utils.getDetailsUrl(initId);
       print(url);
       try {
         response = await client.get(url);
@@ -59,7 +62,12 @@ class _SearchViewState extends State<SearchView> {
     }
     print("site is working");
 
-    var searchResults = json.decode(response.body);
+    var searchResults = initId == ""
+        ? json.decode(response.body)
+        : [json.decode(response.body)];
+
+    print(searchResults);
+
     print("collected search results " + searchResults.length.toString());
     if (searchResults.length == 0) {
       print("no result found");
@@ -81,11 +89,16 @@ class _SearchViewState extends State<SearchView> {
         }
 
         //collect data from json
+        print('1');
+        String id = searchResult['id'];
+
         String name = searchResult['name'];
         String seeds = searchResult['seeders'];
         String leechs = searchResult['seeders'];
+        print('2');
         String dateMillis = searchResult['added'];
         String sizeBytes = searchResult['size'];
+
         String hash = searchResult['info_hash'];
 
         //format the dates
@@ -108,6 +121,7 @@ class _SearchViewState extends State<SearchView> {
 
         try {
           _primaryLinkMap.add({
+            'id': id,
             'title': name,
             'magnetLink': magnetLink,
             'date': date,
@@ -161,7 +175,7 @@ class _SearchViewState extends State<SearchView> {
     setState(() {});
   }
 
-  void wraped_getList(String s) {
+  void wrapedGetList(String s) {
     _getList();
   }
 
@@ -178,6 +192,8 @@ class _SearchViewState extends State<SearchView> {
     isPerformingRequest = false;
     needSuggestions = false;
     print('initstate');
+    print(constants.launchId);
+    _getList(initId: constants.launchId, fromInit: true);
   }
 
   @override
@@ -205,7 +221,7 @@ class _SearchViewState extends State<SearchView> {
                             border: UnderlineInputBorder(
                                 borderSide: BorderSide(color: Colors.red)),
                             hintText: 'Search Torrent'),
-                        onSubmitted: wraped_getList,
+                        onSubmitted: wrapedGetList,
                       )),
                       IconButton(
                         icon: Icon(Icons.search),
@@ -404,11 +420,10 @@ class _SearchViewState extends State<SearchView> {
                                           icon: Icon(Icons.file_download),
                                           onPressed: () async {
                                             try {
-                                              launchMagnetLink(
+                                              utils.launchMagnetLink(
                                                   constants.dummyMagLink);
                                             } catch (e) {
                                               print(e);
-
                                               showDialog(
                                                   context: context,
                                                   builder: (BuildContext
@@ -420,7 +435,6 @@ class _SearchViewState extends State<SearchView> {
                                                               "You need a downoader in order to download things from torrent.",
                                                           buttonText: "later"));
                                             }
-                                            print("1");
 
                                             //
                                             //    _primaryLinkMap[index]
@@ -456,8 +470,8 @@ class _SearchViewState extends State<SearchView> {
                                             iconSize: 25,
                                             icon: Icon(Icons.share),
                                             onPressed: () {
-                                              Share.share(_primaryLinkMap[index]
-                                                  ['magnetLink']);
+                                              Share.share(utils.currentUrl() +
+                                                  _primaryLinkMap[index]['id']);
                                             },
                                           )),
                                     ],

@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:torry/utils/constants.dart' as constants;
+import 'package:Torry/utils/constants.dart' as constants;
 import 'package:http/http.dart';
 import 'package:html/parser.dart';
 import 'package:html/dom.dart' as dom;
 import 'dart:async';
-import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
+import 'utils/utils.dart' as utils;
 
-class whatsHotListView extends StatefulWidget {
+class WhatsHotListView extends StatefulWidget {
   @override
-  _whatsHotListViewState createState() => _whatsHotListViewState();
+  _WhatsHotListViewState createState() => _WhatsHotListViewState();
 }
 
-class _whatsHotListViewState extends State<whatsHotListView> {
+class _WhatsHotListViewState extends State<WhatsHotListView> {
   List<String> _categories = constants.categories;
-  Map<String, String> _categoryMap = constants.categoryMap;
-
-
+  //Map<String, String> _categoryMap = constants.categoryMap;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
 
@@ -64,29 +60,25 @@ class _ExpandableListViewState extends State<ExpandableListView>
   bool expandFlag = false;
   List<String> loadedFiles = [];
   List<String> bookmarkedFiles = [];
-  List<String> _categories = constants.categories;
+  //List<String> _categories = constants.categories;
   Map<String, String> _categoryMap = constants.categoryMap;
   List<Map<String, dynamic>> _primaryLinkMap = [];
   List<String> _url = constants.url;
-
 
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     //print('initiated');
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
     //print('disposed');
   }
-
 
   Future<String> getMagnetLink(dom.Element link, int index) async {
     //extract the magnet link
@@ -163,6 +155,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
   }
 
   @override
+  // ignore: must_call_super
   Widget build(BuildContext context) {
     return Card(
         child: Column(children: <Widget>[
@@ -187,11 +180,10 @@ class _ExpandableListViewState extends State<ExpandableListView>
                 ),
                 onPressed: () {
                   setState(() {
-                    if(!expandFlag){
-                    _getList(widget.title);
+                    if (!expandFlag) {
+                      _getList(widget.title);
                     }
                     expandFlag = !expandFlag;
-
                   });
                 }),
           ],
@@ -277,12 +269,14 @@ class _ExpandableListViewState extends State<ExpandableListView>
                             IconButton(
                                 icon: Icon(Icons.file_download),
                                 onPressed: () async {
-                                  String magLink = _primaryLinkMap[index]['magnetLink'];
-                                  if(await canLaunchMagnetLink(constants.dummyMagLink)){
+                                  String magLink =
+                                      _primaryLinkMap[index]['magnetLink'];
+                                  if (await utils.canLaunchMagnetLink(
+                                      constants.dummyMagLink)) {
                                     //print('interstitial add');
                                   }
 
-                                  launchMagnetLink(magLink);
+                                  utils.launchMagnetLink(magLink);
                                 }),
                             IconButton(
                                 icon: Icon(bookmarkedFiles.contains(
@@ -290,8 +284,8 @@ class _ExpandableListViewState extends State<ExpandableListView>
                                     ? Icons.bookmark
                                     : Icons.bookmark_border),
                                 onPressed: () async {
-                                  String title =
-                                      _primaryLinkMap[index]['title'];
+                                  //String title =
+                                  //    _primaryLinkMap[index]['title'];
                                   setState(() {});
                                 })
                           ],

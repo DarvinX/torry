@@ -1,11 +1,11 @@
-import 'whatsHotListView.dart';
+import 'WhatsHotListView.dart';
 import 'package:flutter/material.dart';
 import 'SearchView.dart';
 //import 'bookmarkListView.dart';
-import 'package:torry/utils/constants.dart' as constants;
+import 'package:Torry/utils/constants.dart' as constants;
+import 'utils/utils.dart' as utils;
 import 'package:share/share.dart';
-import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
-import 'package:torry/addLinkView.dart';
+import 'package:Torry/AddLinkView.dart';
 
 class HomePage extends StatefulWidget {
   //Child Dynamic Widget
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage>
                           style: TextStyle(fontSize: 20, color: Colors.black54),
                         ),
                         onTap: () {
-                          launchTorryLink();
+                          utils.launchTorryLink();
                         },
                       ),
                       ListTile(
@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage>
                           style: TextStyle(fontSize: 20, color: Colors.black54),
                         ),
                         onTap: () {
-                          launchMailUsURI();
+                          utils.launchMailUsURI();
                         },
                       ),
                       /*
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage>
                     ),
                   ),
                   /*Tab(
-                    icon: Icon(Icons.whatshot),
+                    icon: Icon(Icons.WhatsHot),
                   ), */
                   Tab(
                     icon: Icon(Icons.bookmark_border),
@@ -156,11 +156,11 @@ class _HomePageState extends State<HomePage>
           ),
           body: TabBarView(controller: _tabController, children: [
             Container(
-              child: addLink(),
+              child: AddLink(),
             ),
             Container(child: SearchView()),
             Container(
-              child: whatsHotListView(),
+              child: WhatsHotListView(),
             ),
             /*
             Container(

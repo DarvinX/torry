@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:torry/magnetLinkLauncher/magnetLinkLauncher.dart';
-import 'package:torry/dialogBox/dialogBox.dart';
-import 'package:torry/utils/constants.dart' as constants;
+//import 'package:Torry/magnetLinkLauncher/magnetLinkLauncher.dart';
+import 'package:Torry/dialogBox/dialogBox.dart';
+//import 'package:Torry/utils/constants.dart' as constants;
+import 'utils/utils.dart' as utils;
 
-class addLink extends StatefulWidget {
+class AddLink extends StatefulWidget {
   @override
-  _addLinkState createState() => _addLinkState();
+  _AddLinkState createState() => _AddLinkState();
 }
 
-class _addLinkState extends State<addLink> {
+class _AddLinkState extends State<AddLink> {
   final _magnetLinkController = TextEditingController();
 
-
-  void wraped_downloadMagnetLink(String s) {
+  void wrapedDownloadMagnetLink(String s) {
     downloadMagnetLink();
   }
 
   void downloadMagnetLink() async {
-    if (await canLaunchMagnetLink(_magnetLinkController.text)) {
-      launchMagnetLink(_magnetLinkController.text);
+    if (await utils.canLaunchMagnetLink(_magnetLinkController.text)) {
+      utils.launchMagnetLink(_magnetLinkController.text);
     } else {
       showDialog(
           context: context,
@@ -29,18 +29,18 @@ class _addLinkState extends State<addLink> {
               buttonText: "later"));
     }
   }
+
   @override
   void initState() {
     super.initState();
     print('initiated bookmark view');
   }
 
-
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -50,7 +50,7 @@ class _addLinkState extends State<addLink> {
             children: <Widget>[
               new Expanded(
                   child: TextField(
-                    maxLines: null,
+                maxLines: null,
                 controller: _magnetLinkController,
                 onChanged: null,
                 style: TextStyle(
@@ -60,7 +60,7 @@ class _addLinkState extends State<addLink> {
                     border: UnderlineInputBorder(
                         borderSide: BorderSide(color: Colors.red)),
                     hintText: 'Magnet Link'),
-                onSubmitted: wraped_downloadMagnetLink,
+                onSubmitted: wrapedDownloadMagnetLink,
               )),
               IconButton(
                   icon: Icon(Icons.file_download),
@@ -72,9 +72,11 @@ class _addLinkState extends State<addLink> {
           ),
           Container(
             padding: EdgeInsets.only(top: 50),
-            child: Text("Magnet links start with \"magnet:?\"", style: TextStyle(fontSize: 20, color: Colors.blueGrey),),
+            child: Text(
+              "Magnet links start with \"magnet:?\"",
+              style: TextStyle(fontSize: 20, color: Colors.blueGrey),
+            ),
           )
-        ]
-        ));
+        ]));
   }
 }
