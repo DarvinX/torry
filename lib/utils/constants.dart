@@ -1,21 +1,4 @@
-final List<String> url = [
-  'https://pirateproxy.ink',
-  'https://proxybay.tech',
-  'https://tpb-proxy.net',
-  'https://tpbunblocked.net',
-  'https://piratebays.biz',
-  'https://thepiratebay2.net',
-  'https://ahoyahoy.co',
-  'https://lepiratebay.org',
-  'https://indiapirate.org',
-  'https://tpb.world',
-  'https://tpbproxy.vip',
-  'https://tpb.icu'
-];
-
 final int nRetry = 3;
-
-final String saviorLink = 'https://google.com';
 
 final String mailUs = 'mailto:Torrywithease@gmail.com?subject=Torry Feedback';
 
@@ -61,12 +44,6 @@ final List<String> searchTypeList = [
   'Game',
   'Other'
 ];
-
-final List<String> testDeviceId = []; //['BFE0EFAC538B3BA6C9B605707370E14F'];
-final String TorryLink =
-    'https://play.google.com/store/apps/details?id=com.darvin.Torry';
-final String shareText =
-    'Love Movies, Web Series or Games ?\nNow search and download torrents with ease.\n\n$TorryLink';
 
 final String appPackageName = 'com.utorrent.client&hl=en';
 final String appLink = 'market://details?id=' + appPackageName;

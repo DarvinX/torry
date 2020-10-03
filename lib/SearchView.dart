@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:ui';
 //import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:html/parser.dart';
@@ -13,6 +15,7 @@ import 'package:Torry/dialogBox/dialogBox.dart';
 import 'package:share/share.dart';
 import 'package:Torry/utils/utils.dart' as utils;
 import 'package:filesize/filesize.dart';
+import 'package:toast/toast.dart';
 
 class SearchView extends StatefulWidget {
   @override
@@ -43,6 +46,10 @@ class _SearchViewState extends State<SearchView> {
     _noResult = false;
     //create a map of file name and magnet link
     String searchTerm = _movieSearchController.text;
+    if (searchTerm == "") {
+      return 0;
+    }
+    utils.logEvent("search", {'term': searchTerm});
     Response response;
 
     _primaryLinkMap.clear();
@@ -150,12 +157,12 @@ class _SearchViewState extends State<SearchView> {
     print("end of _getList");
     print(_primaryLinkMap.length);
     setState(() {});
-    return 0;
   }
 
   Future _getSuggestions() async {
     needSuggestions = true;
     String searchTerm = _movieSearchController.text;
+
     Response response;
     suggestions = [];
     setState(() {});
@@ -197,7 +204,6 @@ class _SearchViewState extends State<SearchView> {
     isPerformingRequest = false;
     needSuggestions = false;
     print('initstate');
-    print(constants.launchId);
     _getList(initId: constants.launchId, fromInit: true);
   }
 
@@ -298,6 +304,7 @@ class _SearchViewState extends State<SearchView> {
                             style: TextStyle(fontSize: 17),
                           ),
                           onPressed: () {
+                            utils.logEvent('filter', {'category': searchType});
                             _getList();
                           },
                           shape: new RoundedRectangleBorder(
@@ -311,126 +318,140 @@ class _SearchViewState extends State<SearchView> {
           ),
         ),
         Expanded(
-            child: ListView.builder(
-          itemCount:
-              needSuggestions ? suggestions.length : _primaryLinkMap.length + 1,
-          padding: const EdgeInsets.all(10.0),
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            if (needSuggestions) {
-              //print('suggestions');
-              //print(suggestions);
-              return GestureDetector(
-                  onTap: () {
-                    _movieSearchController.text = suggestions[index];
-                    _movieSearchController.selection = TextSelection.collapsed(
-                        offset: _movieSearchController.text.length);
-                    _getList();
-                  },
-                  child: Card(
-                      elevation: 3,
-                      margin: EdgeInsets.all(3),
-                      child: Container(
-                        padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-                        child: Text(
-                          suggestions[index],
-                          style: TextStyle(fontSize: 20),
-                        ),
-                      )));
-            } else {
-              if (index == _primaryLinkMap.length) {
-                return _buildProgressIndicator();
-              } else {
-                return Card(
-                    elevation: 5,
-                    child: Column(
-                      children: <Widget>[
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                  child: Column(
-                                children: <Widget>[
-                                  Container(
-                                    child: Text(
-                                      _primaryLinkMap[index]['title'],
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    padding: EdgeInsets.only(bottom: 5),
-                                  ),
-                                  Row(
+          child: _movieSearchController.text.length != 0
+              ? ListView.builder(
+                  itemCount: needSuggestions
+                      ? suggestions.length
+                      : _primaryLinkMap.length + 1,
+                  padding: const EdgeInsets.all(10.0),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    if (needSuggestions) {
+                      //print('suggestions');
+                      //print(suggestions);
+                      return GestureDetector(
+                          onTap: () {
+                            _movieSearchController.text = suggestions[index];
+                            _movieSearchController.selection =
+                                TextSelection.collapsed(
+                                    offset: _movieSearchController.text.length);
+                            _getList();
+                          },
+                          child: Card(
+                              elevation: 3,
+                              margin: EdgeInsets.all(3),
+                              child: Container(
+                                padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+                                child: Text(
+                                  suggestions[index],
+                                  style: TextStyle(fontSize: 20),
+                                ),
+                              )));
+                    } else {
+                      if (index == _primaryLinkMap.length) {
+                        return _buildProgressIndicator();
+                      } else {
+                        return Card(
+                            elevation: 5,
+                            child: Column(
+                              children: <Widget>[
+                                Padding(
+                                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                  child: Row(
                                     children: <Widget>[
-                                      Column(
-                                        children: <Widget>[
-                                          Text(
-                                            _primaryLinkMap[index]['date'],
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.grey,
-                                                fontStyle: FontStyle.italic),
-                                          ),
-                                          Text(
-                                            _primaryLinkMap[index]['size'],
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.grey,
-                                                fontStyle: FontStyle.italic),
-                                          ),
-                                        ],
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                      ),
                                       Expanded(
                                           child: Column(
                                         children: <Widget>[
-                                          Text(
-                                            'seeders: ' +
-                                                _primaryLinkMap[index]['seeds'],
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.grey,
-                                                fontStyle: FontStyle.italic),
+                                          Container(
+                                            child: Text(
+                                              _primaryLinkMap[index]['title'],
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            padding: EdgeInsets.only(bottom: 5),
                                           ),
-                                          Text(
-                                            'leechers: ' +
-                                                _primaryLinkMap[index]
-                                                    ['leechs'],
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.grey,
-                                                fontStyle: FontStyle.italic),
+                                          Row(
+                                            children: <Widget>[
+                                              Column(
+                                                children: <Widget>[
+                                                  Text(
+                                                    _primaryLinkMap[index]
+                                                        ['date'],
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  ),
+                                                  Text(
+                                                    _primaryLinkMap[index]
+                                                        ['size'],
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  ),
+                                                ],
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                              ),
+                                              Expanded(
+                                                  child: Column(
+                                                children: <Widget>[
+                                                  Text(
+                                                    'seeders: ' +
+                                                        _primaryLinkMap[index]
+                                                            ['seeds'],
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  ),
+                                                  Text(
+                                                    'leechers: ' +
+                                                        _primaryLinkMap[index]
+                                                            ['leechs'],
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: Colors.grey,
+                                                        fontStyle:
+                                                            FontStyle.italic),
+                                                  )
+                                                ],
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                              ))
+                                            ],
                                           )
                                         ],
                                         crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                      ))
-                                    ],
-                                  )
-                                ],
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                              )),
-                              Row(
-                                children: <Widget>[
-                                  Container(
-                                      padding: const EdgeInsets.all(0.0),
-                                      //height: 30.0,
-                                      width: 30.0,
-                                      child: IconButton(
-                                          color: Colors.blue,
-                                          iconSize: 30,
-                                          padding: EdgeInsets.all(0.0),
-                                          icon: Icon(Icons.file_download),
-                                          onPressed: () async {
-                                            try {
-                                              utils.launchMagnetLink(
-                                                  _primaryLinkMap[index]
-                                                      ['magnetLink']);
-                                            } catch (e) {
-                                              print(e);
+                                            CrossAxisAlignment.start,
+                                      )),
+                                      Row(
+                                        children: <Widget>[
+                                          Container(
+                                              padding:
+                                                  const EdgeInsets.all(0.0),
+                                              //height: 30.0,
+                                              width: 30.0,
+                                              child: IconButton(
+                                                  color: Colors.blue,
+                                                  iconSize: 30,
+                                                  padding: EdgeInsets.all(0.0),
+                                                  icon:
+                                                      Icon(Icons.file_download),
+                                                  onPressed: () async {
+                                                    try {
+                                                      utils.launchMagnetLink(
+                                                          _primaryLinkMap[index]
+                                                              ['magnetLink']);
+                                                    } catch (e) {
+                                                      print(e);
+                                                      /*
                                               showDialog(
                                                   context: context,
                                                   builder: (BuildContext
@@ -441,15 +462,12 @@ class _SearchViewState extends State<SearchView> {
                                                           description:
                                                               "You need a downoader in order to download things from torrent.",
                                                           buttonText: "later"));
-                                            }
-
-                                            //
-                                            //    _primaryLinkMap[index]
-                                            //        ['magnetLink']);
-                                          })),
-                                  Column(
-                                    children: <Widget>[
-                                      /*Container(
+                                                          */
+                                                    }
+                                                  })),
+                                          Column(
+                                            children: <Widget>[
+                                              /*Container(
                                           padding: const EdgeInsets.all(0.0),
                                           height: 40.0,
                                           width: 30.0,
@@ -468,7 +486,7 @@ class _SearchViewState extends State<SearchView> {
                                                         ['title'];
                                                 setState(() {});
                                               })),*/
-                                      /*Container(
+                                              /*Container(
                                           padding: const EdgeInsets.all(0.0),
                                           //height: 40.0,
                                           width: 40.0,
@@ -486,19 +504,45 @@ class _SearchViewState extends State<SearchView> {
                                                   context);
                                             },
                                           )),*/
+                                            ],
+                                          )
+                                        ],
+                                      )
                                     ],
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        )
+                                  ),
+                                )
+                              ],
+                            ));
+                      }
+                    }
+                  },
+                )
+              : Padding(
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Torry only helps you to find torrents. \n\n',
+                      style: DefaultTextStyle.of(context).style,
+                      children: <TextSpan>[
+                        TextSpan(
+                            text: 'If you are on a mobile device,',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        TextSpan(
+                            text: 'you need to install a Torrent Downloader'),
+                        TextSpan(
+                            text: ' (click here install)',
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () => utils.launchAppLink()),
+                        TextSpan(
+                          text: ' to download the files.',
+                        ),
                       ],
-                    ));
-              }
-            }
-          },
-        ))
+                    ),
+                  )),
+        )
       ],
     );
   }

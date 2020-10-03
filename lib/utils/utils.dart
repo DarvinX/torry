@@ -10,6 +10,7 @@ import 'dart:js' as js;
 import 'dart:html';
 import 'package:toast/toast.dart';
 import 'package:clippy/browser.dart' as clippy;
+import 'package:firebase/firebase.dart' as Firebase;
 
 class Torrent {
   final String id;
@@ -57,7 +58,6 @@ String getMagnetLink(String hash, String name) {
 }
 
 void launchMagnetLink(String url) async {
-  print(url);
   try {
     await launch(url);
   } catch (e) {
@@ -66,6 +66,7 @@ void launchMagnetLink(String url) async {
 }
 
 Future<bool> canLaunchMagnetLink(String url) async {
+  print(await canLaunch(url));
   if (await canLaunch(url)) {
     print("can launch");
     return true;
@@ -75,17 +76,9 @@ Future<bool> canLaunchMagnetLink(String url) async {
 }
 
 void launchAppLink() async {
-  if (await canLaunch(constants.appLink)) {
-    await launch(constants.appLink);
-  } else {
-    throw 'Could not launch appLink';
-  }
-}
-
-void launchTorryLink() async {
-  if (await canLaunch(constants.appLink)) {
-    await launch(constants.TorryLink);
-  } else {
+  try {
+    launch(constants.appLink);
+  } catch (e) {
     throw 'Could not launch appLink';
   }
 }
@@ -119,4 +112,8 @@ Future<void> share(String url, var context) async {
 
 void copy(String text) async {
   await clippy.write(text);
+}
+
+void logEvent(eventName, eventParams) {
+  Firebase.analytics().logEvent(eventName, eventParams);
 }
