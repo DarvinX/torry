@@ -81,7 +81,7 @@ class _SearchViewState extends State<SearchView> {
       try {
         String tempCodedUrl =
             getDecodedUrl(sortBy, searchType, _movieSearchController.text);
-        print('searching for $codedUrl and $tempCodedUrl');
+        //print('searching for $codedUrl and $tempCodedUrl');
         if (codedUrl != tempCodedUrl) {
           isPerformingRequest = false;
           _noResult = true;
@@ -89,13 +89,10 @@ class _SearchViewState extends State<SearchView> {
         }
 
         //collect data from json
-        print('1');
         String id = searchResult['id'];
-
         String name = searchResult['name'];
         String seeds = searchResult['seeders'];
         String leechs = searchResult['seeders'];
-        print('2');
         String dateMillis = searchResult['added'];
         String sizeBytes = searchResult['size'];
 
@@ -421,7 +418,8 @@ class _SearchViewState extends State<SearchView> {
                                           onPressed: () async {
                                             try {
                                               utils.launchMagnetLink(
-                                                  constants.dummyMagLink);
+                                                  _primaryLinkMap[index]
+                                                      ['magnetLink']);
                                             } catch (e) {
                                               print(e);
                                               showDialog(
@@ -461,7 +459,7 @@ class _SearchViewState extends State<SearchView> {
                                                         ['title'];
                                                 setState(() {});
                                               })),*/
-                                      Container(
+                                      /*Container(
                                           padding: const EdgeInsets.all(0.0),
                                           //height: 40.0,
                                           width: 40.0,
@@ -470,10 +468,15 @@ class _SearchViewState extends State<SearchView> {
                                             iconSize: 25,
                                             icon: Icon(Icons.share),
                                             onPressed: () {
-                                              Share.share(utils.currentUrl() +
-                                                  _primaryLinkMap[index]['id']);
+                                              var content =
+                                                  _primaryLinkMap[index];
+                                              utils.share(
+                                                  utils.currentUrl() +
+                                                      _primaryLinkMap[index]
+                                                          ['id'],
+                                                  context);
                                             },
-                                          )),
+                                          )),*/
                                     ],
                                   )
                                 ],

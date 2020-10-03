@@ -42,13 +42,14 @@ class _HomePageState extends State<HomePage>
       home: DefaultTabController(
         length: 3,
         child: Scaffold(
-          drawer: Container(
-              width: 250,
-              child: Drawer(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 80),
-                  child: Column(
-                    children: <Widget>[
+            drawer: Container(
+                width: 250,
+                child: Drawer(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 80),
+                    child: Column(
+                      children: <Widget>[
+                        /*
                       ListTile(
                         leading: Icon(Icons.share, size: 25),
                         title: Text(
@@ -68,18 +69,19 @@ class _HomePageState extends State<HomePage>
                         onTap: () {
                           utils.launchTorryLink();
                         },
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.mail_outline, size: 25),
-                        title: Text(
-                          'Contact Us',
-                          style: TextStyle(fontSize: 20, color: Colors.black54),
+                      ),*/
+                        ListTile(
+                          leading: Icon(Icons.mail_outline, size: 25),
+                          title: Text(
+                            'Contact Us',
+                            style:
+                                TextStyle(fontSize: 20, color: Colors.black54),
+                          ),
+                          onTap: () {
+                            utils.launchMailUsURI();
+                          },
                         ),
-                        onTap: () {
-                          utils.launchMailUsURI();
-                        },
-                      ),
-                      /*
+                        /*
                       Expanded(
                           child: Align(
                               alignment: Alignment.bottomCenter,
@@ -122,39 +124,40 @@ class _HomePageState extends State<HomePage>
                                     ],
                                   ))))
                     */
-                    ],
-                  ),
-                ),
-              )),
-          appBar: AppBar(
-            title: Text(
-              'Torry',
-              style: TextStyle(
-                fontSize: 25,
-              ),
-            ),
-            // Create Tabs
-            bottom: TabBar(
-                labelStyle: TextStyle(fontSize: 15),
-                controller: _tabController,
-                tabs: [
-                  Tab(
-                    icon: Icon(Icons.link),
-                  ),
-                  Tab(
-                    icon: Icon(
-                      Icons.search,
+                      ],
                     ),
                   ),
-                  /*Tab(
+                )),
+            appBar: AppBar(
+              title: Text(
+                'Torry',
+                style: TextStyle(
+                  fontSize: 25,
+                ),
+              ),
+              // Create Tabs
+              /*bottom: TabBar(
+                  labelStyle: TextStyle(fontSize: 15),
+                  controller: _tabController,
+                  tabs: [
+                    Tab(
+                      icon: Icon(Icons.link),
+                    ),
+                    Tab(
+                      icon: Icon(
+                        Icons.search,
+                      ),
+                    ),
+                    /*Tab(
                     icon: Icon(Icons.WhatsHot),
                   ), */
-                  Tab(
-                    icon: Icon(Icons.bookmark_border),
-                  ),
-                ]),
-          ),
-          body: TabBarView(controller: _tabController, children: [
+                    Tab(
+                      icon: Icon(Icons.bookmark_border),
+                    ),
+                  ]),*/
+            ),
+            body:
+                SearchView() /*TabBarView(controller: _tabController, children: [
             Container(
               child: AddLink(),
             ),
@@ -166,8 +169,8 @@ class _HomePageState extends State<HomePage>
             Container(
               child: bookmarkListView(),
             )*/
-          ]),
-        ),
+          ]),*/
+            ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:Torry/HomePage.dart';
 import 'package:Torry/utils/constants.dart' as constants;
+import 'package:Torry/SearchView.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 

@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
+import 'package:share/share.dart';
 //import 'package:flutter/painting.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:Torry/utils/constants.dart' as constants;
 import 'dart:js' as js;
 import 'dart:html';
+import 'package:toast/toast.dart';
+import 'package:clippy/browser.dart' as clippy;
 
 class Torrent {
   final String id;
@@ -110,4 +113,18 @@ String getDetailsUrl(String id) {
 
 String currentUrl() {
   return js.context['location']['href'];
+}
+
+Future<void> share(String url, var context) async {
+  if (!kIsWeb) {
+    Share.share(url);
+  } else {
+    copy(url);
+    Toast.show("Link copied", context,
+        duration: Toast.LENGTH_LONG, gravity: Toast.BOTTOM);
+  }
+}
+
+void copy(String text) async {
+  await clippy.write(text);
 }
