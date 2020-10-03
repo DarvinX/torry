@@ -63,7 +63,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
   //List<String> _categories = constants.categories;
   Map<String, String> _categoryMap = constants.categoryMap;
   List<Map<String, dynamic>> _primaryLinkMap = [];
-  List<String> _url = constants.url;
+  //List<String> _url = constants.url;
 
   @override
   bool get wantKeepAlive => true;
@@ -80,17 +80,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
     //print('disposed');
   }
 
-  Future<String> getMagnetLink(dom.Element link, int index) async {
-    //extract the magnet link
-    var client = Client();
-    Response res = await client.get(_url[index] + link.attributes['href']);
-    var document = parse(res.body);
-    var magnetLink =
-        document.querySelector('div.download > a').attributes['href'];
-    //print(magnetLink);
-    return (magnetLink);
-  }
-
+/*
   Future _getList(String mapKey) async {
     isPerformingRequest = true;
 
@@ -153,7 +143,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
     //print(primaryLinkMap.length);
     isPerformingRequest = false;
   }
-
+*/
   @override
   // ignore: must_call_super
   Widget build(BuildContext context) {
@@ -181,7 +171,7 @@ class _ExpandableListViewState extends State<ExpandableListView>
                 onPressed: () {
                   setState(() {
                     if (!expandFlag) {
-                      _getList(widget.title);
+                      //_getList(widget.title);
                     }
                     expandFlag = !expandFlag;
                   });
@@ -271,13 +261,14 @@ class _ExpandableListViewState extends State<ExpandableListView>
                                 onPressed: () async {
                                   String magLink =
                                       _primaryLinkMap[index]['magnetLink'];
-                                  if (await utils.canLaunchMagnetLink(
-                                      constants.dummyMagLink)) {
-                                    //print('interstitial add');
-                                  }
+                                  //if (await utils.canLaunchMagnetLink(
+                                  //    constants.dummyMagLink)) {
+                                  //print('interstitial add');
+                                }
 
-                                  utils.launchMagnetLink(magLink);
-                                }),
+                                //utils.launchMagnetLink(magLink);
+                                //}
+                                ),
                             IconButton(
                                 icon: Icon(bookmarkedFiles.contains(
                                         _primaryLinkMap[index]['title'])

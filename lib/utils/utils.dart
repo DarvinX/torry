@@ -49,7 +49,7 @@ Future<List<Torrent>> fetchTorrents(String url) async {
 //url stuff
 String getUrl(String searchTerm, {String category = '0'}) {
   searchTerm = searchTerm.replaceAll(RegExp(r' '), '+'); //replace spaces
-  return 'https://cors-anywhere.herokuapp.com/https://pirateproxy.ink/api?url=/q.php?q=$searchTerm&cat=0';
+  return 'https://cors-anywhere.herokuapp.com/https://piratesbay.link/apibay/q.php?q=$searchTerm&cat=$category';
 }
 
 String getMagnetLink(String hash, String name) {
@@ -85,14 +85,6 @@ void launchAppLink() async {
 void launchTorryLink() async {
   if (await canLaunch(constants.appLink)) {
     await launch(constants.TorryLink);
-  } else {
-    throw 'Could not launch appLink';
-  }
-}
-
-void launchSaviorLink() async {
-  if (await canLaunch(constants.appLink)) {
-    await launch(constants.saviorLink);
   } else {
     throw 'Could not launch appLink';
   }

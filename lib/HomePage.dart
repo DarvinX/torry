@@ -1,11 +1,11 @@
-import 'WhatsHotListView.dart';
+//import 'WhatsHotListView.dart';
 import 'package:flutter/material.dart';
 import 'SearchView.dart';
 //import 'bookmarkListView.dart';
-import 'package:Torry/utils/constants.dart' as constants;
+//import 'package:Torry/utils/constants.dart' as constants;
 import 'utils/utils.dart' as utils;
-import 'package:share/share.dart';
-import 'package:Torry/AddLinkView.dart';
+//import 'package:share/share.dart';
+//import 'package:Torry/AddLinkView.dart';
 
 class HomePage extends StatefulWidget {
   //Child Dynamic Widget
@@ -129,14 +129,20 @@ class _HomePageState extends State<HomePage>
                   ),
                 )),
             appBar: AppBar(
-              title: Text(
-                'Torry',
-                style: TextStyle(
-                  fontSize: 25,
-                ),
+                title: RichText(
+              text: TextSpan(
+                text: 'Torry',
+                style: TextStyle(fontSize: 25, color: Colors.white),
+                children: <TextSpan>[
+                  TextSpan(
+                      text: 'beta',
+                      style: TextStyle(
+                        fontSize: 10,
+                      )),
+                ],
               ),
-              // Create Tabs
-              /*bottom: TabBar(
+            ) // Create Tabs
+                /*bottom: TabBar(
                   labelStyle: TextStyle(fontSize: 15),
                   controller: _tabController,
                   tabs: [
@@ -155,7 +161,7 @@ class _HomePageState extends State<HomePage>
                       icon: Icon(Icons.bookmark_border),
                     ),
                   ]),*/
-            ),
+                ),
             body:
                 SearchView() /*TabBarView(controller: _tabController, children: [
             Container(

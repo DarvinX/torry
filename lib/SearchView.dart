@@ -22,6 +22,7 @@ class SearchView extends StatefulWidget {
 class _SearchViewState extends State<SearchView> {
   String sortBy;
   String searchType;
+  String category = '0';
   final _movieSearchController = TextEditingController();
   //final List<String> _url = constants.url;
   List<String> loadedFiles = [];
@@ -44,17 +45,21 @@ class _SearchViewState extends State<SearchView> {
     String searchTerm = _movieSearchController.text;
     Response response;
 
-    _primaryLinkMap = [];
+    _primaryLinkMap.clear();
     setState(() {});
     var client = Client();
 
     String codedUrl = getDecodedUrl(sortBy, searchType, searchTerm);
     for (var i = 0; i < constants.nRetry; i++) {
-      String url =
-          initId == "" ? utils.getUrl(searchTerm) : utils.getDetailsUrl(initId);
+      String url = initId == ""
+          ? utils.getUrl(searchTerm, category: category)
+          : utils.getDetailsUrl(initId);
       print(url);
       try {
-        response = await client.get(url);
+        response = await client.get(url).then((value) {
+          print(value.request);
+          return value;
+        });
         break;
       } catch (err) {
         print(err);
@@ -66,7 +71,7 @@ class _SearchViewState extends State<SearchView> {
         ? json.decode(response.body)
         : [json.decode(response.body)];
 
-    print(searchResults);
+    //print(searchResults);
 
     print("collected search results " + searchResults.length.toString());
     if (searchResults.length == 0) {
@@ -77,12 +82,13 @@ class _SearchViewState extends State<SearchView> {
       return 0;
     }
     for (var searchResult in searchResults) {
-      //print(searchResult.toString());
+      //print('itering');
       try {
         String tempCodedUrl =
             getDecodedUrl(sortBy, searchType, _movieSearchController.text);
         //print('searching for $codedUrl and $tempCodedUrl');
         if (codedUrl != tempCodedUrl) {
+          print('stopping');
           isPerformingRequest = false;
           _noResult = true;
           return 0;
@@ -95,7 +101,6 @@ class _SearchViewState extends State<SearchView> {
         String leechs = searchResult['seeders'];
         String dateMillis = searchResult['added'];
         String sizeBytes = searchResult['size'];
-
         String hash = searchResult['info_hash'];
 
         //format the dates
@@ -127,7 +132,7 @@ class _SearchViewState extends State<SearchView> {
             'leechs': leechs,
           });
           //print('New result added');
-          setState(() {});
+          //setState(() {});
         } catch (e) {
           print(e);
           continue;
@@ -141,8 +146,11 @@ class _SearchViewState extends State<SearchView> {
     isPerformingRequest = false;
     if (_primaryLinkMap.length == 0) {
       _noResult = true;
-    }
+    } else {}
     print("end of _getList");
+    print(_primaryLinkMap.length);
+    setState(() {});
+    return 0;
   }
 
   Future _getSuggestions() async {
@@ -234,7 +242,7 @@ class _SearchViewState extends State<SearchView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Container(
+                    /*Container(
                       padding: EdgeInsets.symmetric(horizontal: 10),
                       child: DropdownButton(
                         hint: Text('Sort by'),
@@ -254,7 +262,7 @@ class _SearchViewState extends State<SearchView> {
                           });
                         },
                       ),
-                    ),
+                    ),*/
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 0),
                       child: DropdownButton(
@@ -274,6 +282,7 @@ class _SearchViewState extends State<SearchView> {
                         onChanged: (text) {
                           setState(() {
                             searchType = text;
+                            category = constants.categoryMap[text];
                           });
                         },
                       ),

@@ -29,12 +29,12 @@ final List<String> categories = [
 ];
 
 final Map<String, String> categoryMap = {
-  'Movies': '/top/201',
-  'TV Shows': '/top/205',
-  'Comics': '/top/602',
-  'Audio Books': '/top/102',
-  'PC Games': '/top/401',
-  'Ebooks': '/top/601'
+  'Default': '0',
+  'Audio': '100',
+  'Video': '200',
+  'Software': '300',
+  'Game': '400',
+  'Others': '600'
 };
 
 String getAPIUrl(String text) {
@@ -67,22 +67,6 @@ final String TorryLink =
     'https://play.google.com/store/apps/details?id=com.darvin.Torry';
 final String shareText =
     'Love Movies, Web Series or Games ?\nNow search and download torrents with ease.\n\n$TorryLink';
-
-final List<String> keyWords = [
-  'movie',
-  'web series',
-  'tv shows',
-  'hindi movies',
-  'hollywood',
-  'bollywood',
-  'amazon prime',
-  'netflix',
-  'hoichoi',
-  'ALTBalaji',
-  'tollywood',
-  'songs',
-  'hindi songs',
-];
 
 final String appPackageName = 'com.utorrent.client&hl=en';
 final String appLink = 'market://details?id=' + appPackageName;
